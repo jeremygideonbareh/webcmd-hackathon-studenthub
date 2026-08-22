@@ -27,6 +27,7 @@ except ImportError as e:
 from intelligence.advisor import analyze_resume_skills
 from intelligence.scholarships import get_scholarships
 from intelligence.discounts import get_discounts
+from intelligence.live_search_engine import execute_live_student_search
 
 
 def get_matched_jobs(resume_data: dict | None = None, category: str = "python-internship", top_n: int = 5) -> dict:
@@ -54,7 +55,7 @@ def get_matched_jobs(resume_data: dict | None = None, category: str = "python-in
                 "title": m.get("title", "Software Developer Intern"),
                 "company": m.get("company", "Tech Enterprise"),
                 "match_score": m.get("match_score", 0.85),
-                "match_reason": f"Top resume match based on skills: {', '.join(m.get('skills', ['Python']))}",
+                "match_reason": f"Top match based on your skills: {', '.join(m.get('skills', ['Python']))}",
                 "stipend": m.get("stipend", "Competitive"),
                 "url": m.get("link", "https://internshala.com"),
                 "category": category,
@@ -76,7 +77,7 @@ def get_housing(locality: str = "Koramangala", city: str = "Bangalore", budget_m
         for i, h in enumerate(listings):
             formatted.append({
                 "id": h.get("link") or f"housing_{i}",
-                "title": h.get("title", "Apartment near campus"),
+                "title": h.get("title", f"PG/Apartment near {locality}"),
                 "price": f"₹{h.get('price', '15,000')}/month" if isinstance(h.get("price"), (int, float)) else str(h.get("price", "₹15,000/month")),
                 "location": f"{locality}, {city}",
                 "url": h.get("link", "https://www.nobroker.in"),
@@ -95,4 +96,5 @@ __all__ = [
     "analyze_resume_skills",
     "get_scholarships",
     "get_discounts",
+    "execute_live_student_search",
 ]

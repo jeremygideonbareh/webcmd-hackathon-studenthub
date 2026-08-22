@@ -13,6 +13,7 @@ Endpoints:
     POST /api/attendance/simulate → {present, total, future_attend, future_miss} → projected attendance
     POST /api/auth/session     → save user session profile
     GET  /api/auth/session      → get current active user session profile
+    POST /api/live/search      → execute real-time WebCMD scraping based on student details
 """
 
 from __future__ import annotations
@@ -27,7 +28,7 @@ from fastapi.staticfiles import StaticFiles
 from config import Config
 from delivery.database import Database
 from delivery.learning_engine import LearningEngine
-from intelligence import analyze_resume_skills, get_scholarships, get_discounts
+from intelligence import analyze_resume_skills, execute_live_student_search, get_scholarships, get_discounts
 from portal.attendance_calculus import simulate_attendance
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -98,6 +99,26 @@ def digest() -> dict:
         "user_session": session or {},
         "weights": db.get_all_weights(),
     }
+
+
+@app.post("/api/live/search")
+async def live_search(request: Request) -> JSONResponse:
+    """Perform live WebCMD scraping based strictly on student details."""
+    body = await request.json()
+    stream = body.get("stream", "Engineering")
+    gpa = float(body.get("gpa", 8.0))
+    locality = body.get("locality", "Koramangala")
+    city = body.get("city", "Bangalore")
+    skills = body.get("skills", ["Python", "Git", "SQL"])
+
+    results = execute_live_student_search(
+        stream=stream,
+        gpa=gpa,
+        locality=locality,
+        city=city,
+        skills=skills,
+    )
+    return JSONResponse(results)
 
 
 @app.post("/api/feedback")
