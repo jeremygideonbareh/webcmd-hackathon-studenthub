@@ -1,0 +1,33 @@
+{
+  "scraped_at": "2026-08-22T10:00:00+05:30",
+  "source": "nobroker",
+  "listings": [
+    {
+      "id": "nb_98765",
+      "title": "2BHK near VIT Campus",
+      "price": "₹12,000/month",
+      "location": "Katpadi, Vellore",
+      "url": "https://nobroker.in/property/98765",
+      "bedrooms": 2,
+      "furnished": "Semi-Furnished"
+    },
+    {
+      "id": "nb_98766",
+      "title": "1BHK Studio Apartment",
+      "price": "₹8,500/month",
+      "location": "Katpadi, Vellore",
+      "url": "https://nobroker.in/property/98766",
+      "bedrooms": 1,
+      "furnished": "Fully-Furnished"
+    },
+    {
+      "id": "nb_98767",
+      "title": "Shared Room PG",
+      "price": "₹6,000/month",
+      "location": "Katpadi, Vellore",
+      "url": "https://nobroker.in/property/98767",
+      "bedrooms": 1,
+      "furnished": "Semi-Furnished"
+    }
+  ]
+}

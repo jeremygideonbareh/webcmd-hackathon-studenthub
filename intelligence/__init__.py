@@ -1,0 +1,1 @@
+"""Atlas intelligence package — Sapna's domain. Resume parsing, scraping, matching."""

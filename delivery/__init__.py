@@ -1,0 +1,1 @@
+"""Atlas delivery package — Jeremy's domain. SQLite, learning engine, optional notifier."""

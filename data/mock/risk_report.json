@@ -1,0 +1,50 @@
+{
+  "generated_at": "2026-08-22T10:00:00+05:30",
+  "threshold_pct": 85.0,
+  "subjects": [
+    {
+      "code": "EEE1001",
+      "name": "Basic Electrical Engineering",
+      "current_pct": 80.77,
+      "classes_present": 42,
+      "classes_total": 52,
+      "classes_can_skip": 0,
+      "classes_must_attend": 3,
+      "projection": "Must attend next 3 consecutive classes to reach 85%",
+      "risk_level": "HIGH"
+    },
+    {
+      "code": "CS2004",
+      "name": "Data Structures",
+      "current_pct": 96.0,
+      "classes_present": 48,
+      "classes_total": 50,
+      "classes_can_skip": 5,
+      "classes_must_attend": 0,
+      "projection": "You're at 96.0%. You can safely skip 5 more classes.",
+      "risk_level": "SAFE"
+    },
+    {
+      "code": "MAT1002",
+      "name": "Linear Algebra",
+      "current_pct": 76.0,
+      "classes_present": 38,
+      "classes_total": 50,
+      "classes_can_skip": 0,
+      "classes_must_attend": 9,
+      "projection": "Must attend next 9 consecutive classes to reach 85%",
+      "risk_level": "DANGER"
+    },
+    {
+      "code": "PHY1001",
+      "name": "Engineering Physics",
+      "current_pct": 90.0,
+      "classes_present": 45,
+      "classes_total": 50,
+      "classes_can_skip": 3,
+      "classes_must_attend": 0,
+      "projection": "You're at 90.0%. You can skip 3 class(es) but be careful.",
+      "risk_level": "CAUTION"
+    }
+  ]
+}

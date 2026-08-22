@@ -1,0 +1,48 @@
+% Sample LaTeX resume for testing Atlas resume_parser.py
+\documentclass[a4paper,11pt]{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+
+\titleformat{\section}{\Large\bfseries}{}{0em}{}[\titlerule]
+\titlespacing*{\section}{0pt}{12pt}{6pt}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries Rahul Kumar}\\[4pt]
+B.Tech Computer Science, VIT Vellore $\cdot$ 22BCE1234\\
+rahul.kumar@vit.ac.in $\cdot$ +91 98765 43210
+\end{center}
+
+\section*{Education}
+B.Tech in Computer Science, VIT Vellore, 2022--2026\\
+CGPA: 8.45 / 10
+
+\section*{Skills}
+\begin{itemize}[itemsep=1pt, topsep=2pt]
+  \item \textbf{Programming}: Python, MATLAB, C, C++, JavaScript
+  \item \textbf{Web}: React, FastAPI, REST APIs, HTML/CSS
+  \item \textbf{ML}: TensorFlow, scikit-learn, pandas
+  \item \textbf{Tools}: Git, Linux, Docker, VS Code
+\end{itemize}
+
+\section*{Experience}
+\textbf{ML Intern --- TechCorp} (Summer 2025)\\
+\begin{itemize}[itemsep=1pt, topsep=2pt]
+  \item Built an image classification pipeline in TensorFlow, improving inference latency by 40\%.
+  \item Implemented data augmentation and model pruning to reduce model size by 30\%.
+\end{itemize}
+
+\section*{Projects}
+\begin{itemize}[itemsep=1pt, topsep=2pt]
+  \item \textbf{Full-stack Attendance Tracker}: React + FastAPI dashboard with SQLite persistence.
+  \item \textbf{Chatbot for Course Queries}: Python NLP pipeline using TF-IDF + cosine similarity.
+\end{itemize}
+
+\section*{Achievements}
+\begin{itemize}[itemsep=1pt, topsep=2pt]
+  \item Secured top 10\% in the university competitive programming contest (2025).
+\end{itemize}
+
+\end{document}

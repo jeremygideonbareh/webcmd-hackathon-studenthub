@@ -1,0 +1,8 @@
+{
+  "name": "Rahul Kumar",
+  "skills": ["Python", "MATLAB", "C", "TensorFlow", "React"],
+  "education": "B.Tech Computer Science, VIT Vellore",
+  "experience_summary": "Built ML pipeline for image classification using TensorFlow; developed full-stack web apps in React.",
+  "full_text": "RAHUL KUMAR\nB.Tech Computer Science, VIT Vellore (CGPA 8.45)\n\nSKILLS\nPython, MATLAB, C, TensorFlow, React, REST APIs, Git\n\nEXPERIENCE\nSummer 2025 - ML Intern at TechCorp: Built an image classification pipeline in TensorFlow, improved inference latency by 40%.\n\nPROJECTS\nBuilt a full-stack attendance tracker with React + FastAPI.\n\nEDUCATION\nB.Tech Computer Science, VIT Vellore, 2022-2026.",
+  "parsed_at": "2026-08-22T10:00:00+05:30"
+}

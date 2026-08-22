@@ -1,0 +1,24 @@
+# Atlas configuration — thresholds, URLs, scraper settings
+
+# Attendance
+attendance_threshold: 0.85      # minimum attendance fraction (85%)
+risk_safe: 90.0                 # % → risk_level SAFE
+risk_caution: 85.0              # % → risk_level CAUTION
+risk_warning: 80.0              # % → risk_level WARNING (below = DANGER)
+
+# GPA → job mode thresholds
+gpa_competitive: 8.5            # >= 8.5 → COMPETITIVE mode
+gpa_balanced: 8.0               # >= 8.0 → BALANCED mode (below = PORTFOLIO)
+
+# KP portal (Knowledge Pro, Apache Struts)
+kp_portal_url: https://kp.christuniversity.in/KnowledgePro
+webcmd_profile: kp_student
+webcmd_session_id: ""           # set after: webcmd --profile kp_student session create -f json
+
+# Housing scraper defaults
+housing_city: bangalore
+housing_locality: Katpadi
+housing_max_budget: 25000
+
+# Discord optional bonus (delivery/notify_discord.py) — set DISCORD_WEBHOOK_URL in .env to enable
+discord_webhook_url: ""

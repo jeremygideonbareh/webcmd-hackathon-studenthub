@@ -1,0 +1,54 @@
+{
+  "scraped_at": "2026-08-22T10:00:00+05:30",
+  "source": "internshala",
+  "jobs": [
+    {
+      "id": "internshala_12345",
+      "title": "Python Developer Intern",
+      "company": "TechCorp",
+      "location": "Remote",
+      "stipend": "₹15,000/month",
+      "skills_required": ["Python", "Django", "REST APIs"],
+      "description": "Looking for a Python developer intern to build REST APIs with Django. Experience with Git and basic web frameworks required.",
+      "url": "https://internshala.com/internship/detail/12345",
+      "posted_date": "2026-08-21",
+      "min_gpa": null
+    },
+    {
+      "id": "internshala_12346",
+      "title": "MATLAB Research Intern",
+      "company": "IISc",
+      "location": "Bangalore",
+      "stipend": "₹20,000/month",
+      "skills_required": ["MATLAB", "Signal Processing"],
+      "description": "Research internship in the signal processing lab. MATLAB proficiency required. Assist PhD students with simulation work.",
+      "url": "https://internshala.com/internship/detail/12346",
+      "posted_date": "2026-08-20",
+      "min_gpa": 7.5
+    },
+    {
+      "id": "internshala_12347",
+      "title": "C Systems Intern",
+      "company": "Qualcomm",
+      "location": "Hyderabad",
+      "stipend": "₹25,000/month",
+      "skills_required": ["C", "Embedded Systems"],
+      "description": "Work on low-level C systems programming for embedded platforms. Strong fundamentals in C and OS concepts needed.",
+      "url": "https://internshala.com/internship/detail/12347",
+      "posted_date": "2026-08-19",
+      "min_gpa": 8.0
+    },
+    {
+      "id": "internshala_12348",
+      "title": "Frontend Web Intern",
+      "company": "DesignHub",
+      "location": "Remote",
+      "stipend": "₹10,000/month",
+      "skills_required": ["React", "JavaScript", "CSS"],
+      "description": "Frontend intern for a design startup. Build UI components in React. Portfolio of personal projects is a plus.",
+      "url": "https://internshala.com/internship/detail/12348",
+      "posted_date": "2026-08-18",
+      "min_gpa": null
+    }
+  ]
+}

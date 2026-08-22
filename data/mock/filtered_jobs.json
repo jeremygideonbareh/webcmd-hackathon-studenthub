@@ -1,0 +1,51 @@
+{
+  "generated_at": "2026-08-22T10:00:00+05:30",
+  "student_gpa": 8.45,
+  "gpa_mode": "balanced",
+  "jobs": [
+    {
+      "id": "internshala_12345",
+      "title": "Python Developer Intern",
+      "company": "TechCorp",
+      "match_score": 0.87,
+      "match_reason": "Skills match: Python, REST APIs. GPA eligible.",
+      "stipend": "₹15,000/month",
+      "url": "https://internshala.com/internship/detail/12345",
+      "category": "engineering",
+      "image_url": null
+    },
+    {
+      "id": "internshala_12348",
+      "title": "Frontend Web Intern",
+      "company": "DesignHub",
+      "match_score": 0.82,
+      "match_reason": "Skills match: React. Portfolio-friendly role.",
+      "stipend": "₹10,000/month",
+      "url": "https://internshala.com/internship/detail/12348",
+      "category": "web",
+      "image_url": null
+    },
+    {
+      "id": "internshala_12346",
+      "title": "MATLAB Research Intern",
+      "company": "IISc",
+      "match_score": 0.75,
+      "match_reason": "Skills match: MATLAB. GPA eligible.",
+      "stipend": "₹20,000/month",
+      "url": "https://internshala.com/internship/detail/12346",
+      "category": "research",
+      "image_url": null
+    },
+    {
+      "id": "internshala_12347",
+      "title": "C Systems Intern",
+      "company": "Qualcomm",
+      "match_score": 0.68,
+      "match_reason": "Partial skills match: C. GPA eligible.",
+      "stipend": "₹25,000/month",
+      "url": "https://internshala.com/internship/detail/12347",
+      "category": "engineering",
+      "image_url": null
+    }
+  ]
+}
