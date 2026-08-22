@@ -14,9 +14,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = React.useState<Theme>(() => {
     try {
       const saved = localStorage.getItem("atlas_theme") as Theme;
-      return saved === "light" ? "light" : "dark"; // Default to dark mode as requested
+      return saved === "dark" ? "dark" : "light"; // Default to light mode as requested
     } catch {
-      return "dark";
+      return "light";
     }
   });
 

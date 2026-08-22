@@ -71,8 +71,8 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
   topWord = "atlas",
   rightWord = "student",
   bottomWord = "hub",
-  textColor = "#FFFFFF",
-  backgroundColor = "#0b0b0e",
+  textColor = "currentColor",
+  backgroundColor = "transparent",
   showClocks = true,
   clocks = DEFAULT_CLOCKS,
   scrollDistance = "+=150%",
@@ -147,7 +147,7 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
           className="absolute inset-0 z-30 pointer-events-none flex flex-col justify-between"
           style={{ willChange: "transform, opacity, filter" }}
         >
-          {/* Top Word: atlas (Pushed to Left, Size Reduced by 2 Units) */}
+          {/* Top Word: atlas */}
           <div className="absolute top-[4%] left-[6%] sm:left-[10%] flex justify-start">
             <span
               className="font-black uppercase tracking-tighter leading-none select-none text-left"
@@ -161,7 +161,7 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
             </span>
           </div>
 
-          {/* Right Word: student (Size Reduced by 2 Units) */}
+          {/* Right Word: student */}
           <div className="absolute right-[4%] top-[38%] flex items-center justify-end">
             <span
               className="font-black uppercase tracking-tighter leading-none select-none text-right drop-shadow-lg"
@@ -175,7 +175,7 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
             </span>
           </div>
 
-          {/* Bottom Word: hub (Pushed to Right, Size Reduced by 2 Units) */}
+          {/* Bottom Word: hub */}
           <div className="absolute bottom-[4%] right-[6%] sm:right-[10%] flex justify-end">
             <span
               className="font-normal italic uppercase leading-none select-none text-right"
@@ -211,7 +211,7 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
         {/* ── Center Expanding Video Pill ── */}
         <div
           ref={videoWrapperRef}
-          className="absolute z-20 overflow-hidden shadow-2xl transition-[border-radius] border border-white/10"
+          className="absolute z-20 overflow-hidden shadow-2xl transition-[border-radius] border border-black/10 dark:border-white/10"
           style={{
             top: "18%",
             bottom: "18%",
