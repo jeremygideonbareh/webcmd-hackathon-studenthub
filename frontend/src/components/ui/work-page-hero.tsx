@@ -141,19 +141,19 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
         ref={containerRef}
         className="relative h-screen min-h-[520px] w-full overflow-hidden select-none"
       >
-        {/* ── Animated Kinetic Typography Overlay (Original Typography) ── */}
+        {/* ── Animated Kinetic Typography Overlay ── */}
         <div
           ref={textGroupRef}
           className="absolute inset-0 z-30 pointer-events-none flex flex-col justify-between"
           style={{ willChange: "transform, opacity, filter" }}
         >
-          {/* Top Word: atlas (Original Sans-Serif + Soft Coral Accent) */}
-          <div className="absolute top-[2%] inset-x-0 flex justify-center">
+          {/* Top Word: atlas (Pushed to Left, Size Reduced by 2 Units) */}
+          <div className="absolute top-[4%] left-[6%] sm:left-[10%] flex justify-start">
             <span
-              className="font-black tracking-tighter leading-none select-none text-center"
+              className="font-black uppercase tracking-tighter leading-none select-none text-left"
               style={{
                 color: "#FF9398",
-                fontSize: "clamp(3.5rem, 11vw, 11rem)",
+                fontSize: "clamp(2.5rem, 8.5vw, 8.5rem)",
                 fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
               }}
             >
@@ -161,13 +161,13 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
             </span>
           </div>
 
-          {/* Right Word: student (Original Sans-Serif + White Accent) */}
-          <div className="absolute right-[3%] top-[38%] flex items-center">
+          {/* Right Word: student (Size Reduced by 2 Units) */}
+          <div className="absolute right-[4%] top-[38%] flex items-center justify-end">
             <span
-              className="font-black tracking-tighter leading-none select-none drop-shadow-lg"
+              className="font-black uppercase tracking-tighter leading-none select-none text-right drop-shadow-lg"
               style={{
                 color: textColor,
-                fontSize: "clamp(3.5rem, 11vw, 11rem)",
+                fontSize: "clamp(2.5rem, 8.5vw, 8.5rem)",
                 fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
               }}
             >
@@ -175,13 +175,13 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
             </span>
           </div>
 
-          {/* Bottom Word: hub (Original Editorial Serif Italic + Warm Terracotta Accent) */}
-          <div className="absolute bottom-[2%] inset-x-0 flex justify-center">
+          {/* Bottom Word: hub (Pushed to Right, Size Reduced by 2 Units) */}
+          <div className="absolute bottom-[4%] right-[6%] sm:right-[10%] flex justify-end">
             <span
-              className="font-normal italic leading-none select-none text-center"
+              className="font-normal italic uppercase leading-none select-none text-right"
               style={{
                 color: "#D14836",
-                fontSize: "clamp(4rem, 14vw, 13rem)",
+                fontSize: "clamp(3rem, 10.5vw, 9.5rem)",
                 fontFamily: "Georgia, 'Times New Roman', Cambria, serif",
               }}
             >
@@ -192,13 +192,13 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
           {/* ── World Clocks Column ── */}
           {showClocks && clocks.length > 0 && (
             <div
-              className="absolute left-[clamp(1.25rem,4vw,5rem)] top-1/2 -translate-y-1/2 flex flex-col gap-3 font-mono text-[clamp(9px,1.1vw,12px)] uppercase tracking-[0.15em] opacity-90"
+              className="absolute left-[clamp(1rem,3vw,3.5rem)] top-1/2 -translate-y-1/2 flex flex-col gap-3 font-mono text-[clamp(9px,1vw,11px)] uppercase tracking-[0.15em] opacity-90"
               style={{ color: "#ECD06F" }}
             >
               {clocks.map(({ tz, label }) => (
                 <div
                   key={tz}
-                  className="flex items-center gap-[clamp(0.5rem,1.2vw,1.5rem)] font-medium"
+                  className="flex items-center gap-[clamp(0.4rem,1vw,1.2rem)] font-medium"
                 >
                   <span className="tabular-nums font-semibold text-[#FF9398]">{formatTime(tz)}</span>
                   <span style={{ color: textColor }}>{label}</span>
