@@ -1,5 +1,5 @@
 """
-Intelligence package — unifying resume parsing, TF-IDF matching,
+Atlas intelligence package — unifying resume parsing, TF-IDF matching,
 job scrapers, housing scrapers, scholarships, discounts, and AI resume skills advisor.
 """
 

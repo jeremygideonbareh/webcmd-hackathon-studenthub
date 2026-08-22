@@ -1,127 +1,159 @@
 """
 AI Resume & Skills Advisor Engine.
 
-Analyzes a student's profile (skills, projects, education) against target stream expectations:
-- Engineering
-- Psychology
-- BBA
-- MBA
-
-Outputs:
-1. Stream readiness score (0-100%)
-2. Matched & missing critical skills
-3. High-impact recommended portfolio projects
-4. Tailored resume bullet point suggestions
+Performs skill-gap analysis for a student's resume against the expected
+skill set for their academic stream, and returns a readiness score,
+matched/missing skills, recommended projects, and resume bullet suggestions.
 """
 
 from __future__ import annotations
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
-# Stream Skill Benchmarks
-STREAM_BENCHMARKS: Dict[str, Dict[str, Any]] = {
-    "Engineering": {
-        "core_skills": ["Python", "Data Structures & Algorithms", "Git", "Docker", "REST APIs", "SQL", "Linux"],
-        "recommended_projects": [
-            {
-                "title": "High-Throughput Microservice Engine",
-                "description": "Build a scalable REST API using Python FastAPI, PostgreSQL, and Redis caching for sub-50ms response times.",
-                "skills_gained": ["Python", "FastAPI", "PostgreSQL", "Docker", "Redis"]
-            },
-            {
-                "title": "Automated Web Scraper & Data Pipeline",
-                "description": "Develop a headless browser scraper using Playwright/curl_cffi with automated proxy rotation and pandas ETL transformation.",
-                "skills_gained": ["Python", "Web Scraping", "Pandas", "ETL"]
-            }
-        ],
-        "bullet_templates": [
-            "Architected distributed backend service processing {X}+ requests/sec with {Y}% uptime.",
-            "Optimized SQL query execution plan, reducing database latency by {Y}% across core endpoints.",
-            "Integrated CI/CD deployment pipeline with Docker and GitHub Actions, reducing build times by {Y}%."
-        ]
+# --- Stream skill maps ---
+
+STREAM_SKILLS: Dict[str, List[str]] = {
+    "Engineering": ["Python", "DSA", "Git", "Docker", "REST APIs", "SQL", "Linux"],
+    "Psychology": ["SPSS", "Statistical Analysis", "Qualtrics", "R", "Behavioral Assessment", "Psychometrics"],
+    "BBA": ["Excel Pivot Tables", "Financial Modeling", "Market Research", "Brand Strategy", "Sales Pitching", "CRM"],
+    "MBA": ["Corporate Strategy", "Business Analytics", "SQL", "Tableau/PowerBI", "DCF Valuation", "Agile"],
+}
+
+PROJECT_LIBRARY: Dict[str, Dict[str, Any]] = {
+    "DSA": {
+        "title": "Competitive Programming Portfolio",
+        "description": "Solve and document 50+ algorithmic problems across arrays, trees, and graphs, published on GitHub with complexity analysis.",
+        "skills_gained": ["DSA", "Python"],
     },
-    "Psychology": {
-        "core_skills": ["SPSS", "Statistical Analysis", "Qualtrics", "R", "Behavioral Assessment", "Psychometrics", "Case Study Analysis"],
-        "recommended_projects": [
-            {
-                "title": "Empirical Behavioral Survey & Statistical Report",
-                "description": "Design a multi-variable Qualtrics survey measuring cognitive fatigue, running ANOVA and regression models in SPSS.",
-                "skills_gained": ["SPSS", "Qualtrics", "ANOVA", "Regression Analysis"]
-            },
-            {
-                "title": "Mental Health Intervention Meta-Analysis",
-                "description": "Conduct a systematic literature review and R meta-analysis evaluating digital mindfulness intervention efficacy.",
-                "skills_gained": ["R", "Literature Review", "Psychometrics", "Data Visualization"]
-            }
-        ],
-        "bullet_templates": [
-            "Conducted quantitative statistical analysis on sample of {X}+ participants using SPSS ANOVA and regression models.",
-            "Authored {X}-page empirical research paper evaluating cognitive behavioral intervention outcomes.",
-            "Designed and deployed Qualtrics survey instrument achieving {X}% response rate across {Y}+ respondents."
-        ]
+    "Docker": {
+        "title": "Containerized Microservice Deployment",
+        "description": "Containerize a small REST API with Docker and deploy it, documenting the build and deployment pipeline.",
+        "skills_gained": ["Docker", "REST APIs"],
     },
-    "BBA": {
-        "core_skills": ["Excel Pivot Tables", "Financial Modeling", "Market Research", "Brand Strategy", "Sales Pitching", "Google Analytics", "CRM"],
-        "recommended_projects": [
-            {
-                "title": "D2C Brand Go-To-Market Strategy",
-                "description": "Formulate a digital marketing acquisition campaign for a D2C startup with CAC/LTV payback financial modeling.",
-                "skills_gained": ["Market Research", "Financial Modeling", "Google Analytics", "CAC/LTV Analysis"]
-            },
-            {
-                "title": "B2B Sales Pipeline & CRM Optimization",
-                "description": "Build a sales lead scoring matrix and CRM pipeline workflow to optimize conversion funnel metrics.",
-                "skills_gained": ["Sales Strategy", "CRM Workflow", "Lead Scoring", "Pitching"]
-            }
-        ],
-        "bullet_templates": [
-            "Developed financial valuation model (DCF/LBO) forecasting revenue growth across 5-year period.",
-            "Executed digital marketing campaign driving {X}% increase in qualified lead acquisition.",
-            "Presented strategic market analysis deck to senior stakeholders, identifying {X}% new market expansion."
-        ]
+    "REST APIs": {
+        "title": "High-Throughput Microservice Engine",
+        "description": "Design and build a scalable REST API for an app with proper CRUD endpoints, PostgreSQL, and sub-50ms response times.",
+        "skills_gained": ["REST APIs", "SQL", "FastAPI"],
     },
-    "MBA": {
-        "core_skills": ["Corporate Strategy", "Business Analytics", "SQL", "Tableau / PowerBI", "Financial Valuation (DCF)", "Agile Management", "P&L Analysis"],
-        "recommended_projects": [
-            {
-                "title": "Corporate M&A Synergy & DCF Valuation Model",
-                "description": "Build a discounted cash flow (DCF) model analyzing a hypothetical Tech M&A acquisition with sensitivity tables.",
-                "skills_gained": ["DCF Valuation", "M&A Analysis", "Financial Modeling", "Corporate Strategy"]
-            },
-            {
-                "title": "Executive Business Intelligence Dashboard",
-                "description": "Construct an interactive Tableau/PowerBI dashboard querying SQL data warehouse to track enterprise KPIs.",
-                "skills_gained": ["SQL", "Tableau", "PowerBI", "Executive Reporting"]
-            }
-        ],
-        "bullet_templates": [
-            "Formulated strategic corporate roadmap for {X} division, resulting in ${Y}M projected operational savings.",
-            "Constructed SQL data warehouse queries and Tableau dashboard tracking $5M+ ARR pipeline metrics.",
-            "Led cross-functional Agile team of {X} members to deliver strategic product launch 2 weeks ahead of schedule."
-        ]
-    }
+    "SQL": {
+        "title": "Data Analysis & Database Latency Optimization",
+        "description": "Query and analyze public datasets using SQL joins, aggregations, and window functions; optimize query execution plans.",
+        "skills_gained": ["SQL", "PostgreSQL"],
+    },
+    "R": {
+        "title": "Statistical Report & Meta-Analysis in R",
+        "description": "Reproduce published psychology study statistical analyses in R, including ANOVA and regression models.",
+        "skills_gained": ["R", "Statistical Analysis"],
+    },
+    "Psychometrics": {
+        "title": "Empirical Behavioral Survey & Statistical Report",
+        "description": "Design a psychometric survey instrument, collect data from 500+ participants, and analyze results using SPSS ANOVA.",
+        "skills_gained": ["SPSS", "ANOVA", "Psychometrics"],
+    },
+    "Qualtrics": {
+        "title": "Behavioral Assessment Survey & Qualtrics Deployment",
+        "description": "Build and deploy a multi-variable survey in Qualtrics measuring cognitive fatigue and behavioral response metrics.",
+        "skills_gained": ["Qualtrics", "Behavioral Assessment"],
+    },
+    "Financial Modeling": {
+        "title": "D2C Brand Go-To-Market Financial Model",
+        "description": "Build a 3-statement financial model for a startup, including revenue projections, CAC/LTV payback, and DCF valuation.",
+        "skills_gained": ["Financial Modeling", "Excel Pivot Tables"],
+    },
+    "Market Research": {
+        "title": "Market Entry & Competitor Intelligence Report",
+        "description": "Conduct primary and secondary market research for a product idea, including competitor analysis and go-to-market recommendation.",
+        "skills_gained": ["Market Research", "Brand Strategy"],
+    },
+    "CRM": {
+        "title": "B2B Sales Pipeline & CRM Optimization",
+        "description": "Build a sales lead scoring matrix and CRM pipeline workflow in HubSpot/Zoho to optimize conversion funnel metrics.",
+        "skills_gained": ["CRM", "Sales Pitching"],
+    },
+    "Business Analytics": {
+        "title": "Executive Business Intelligence Dashboard",
+        "description": "Construct an interactive Tableau/PowerBI dashboard querying SQL data warehouse to track enterprise KPIs.",
+        "skills_gained": ["Business Analytics", "Tableau/PowerBI"],
+    },
+    "DCF Valuation": {
+        "title": "Corporate M&A Synergy & DCF Valuation Model",
+        "description": "Perform a full DCF valuation of a Tech M&A acquisition using financial statements, sensitivity tables, and market cap benchmarks.",
+        "skills_gained": ["DCF Valuation", "Corporate Strategy"],
+    },
+}
+
+BULLET_TEMPLATES: Dict[str, str] = {
+    "SPSS": "Conducted quantitative statistical analysis on sample of 500+ participants using SPSS ANOVA and regression models.",
+    "Qualtrics": "Designed and deployed structured surveys in Qualtrics to collect and analyze behavioral response data.",
+    "R": "Performed statistical modeling and data visualization in R to analyze experimental results.",
+    "Psychometrics": "Applied psychometric principles to design and validate a behavioral assessment instrument.",
+    "DSA": "Solved 50+ data structures and algorithms problems, demonstrating strong proficiency in Python-based problem solving.",
+    "Docker": "Containerized and deployed a REST API service using Docker, streamlining the deployment pipeline.",
+    "REST APIs": "Designed and implemented RESTful API endpoints supporting full CRUD functionality for production microservices.",
+    "SQL": "Wrote complex SQL queries involving joins, aggregations, and window functions to extract actionable insights.",
+    "Financial Modeling": "Built a 3-statement financial model with DCF valuation to support startup investment decision-making.",
+    "Market Research": "Conducted primary and secondary market research to inform go-to-market strategy for a new product line.",
+    "CRM": "Managed a B2B sales pipeline in a CRM platform, tracking leads through defined conversion stages.",
+    "Business Analytics": "Built interactive dashboards in Tableau/PowerBI to surface key business trends from large datasets.",
+    "DCF Valuation": "Performed discounted cash flow valuation of a publicly listed company, benchmarking against market cap.",
+    "Corporate Strategy": "Developed a corporate strategy case study evaluating market entry options for enterprise expansion.",
+    "Agile": "Applied Agile/Scrum methodology to manage sprint planning and delivery for a cross-functional team project.",
 }
 
 
-def analyze_resume_skills(user_skills: List[str], stream: str = "Engineering") -> Dict[str, Any]:
-    """Analyze student skills against target stream benchmarks."""
-    benchmark = STREAM_BENCHMARKS.get(stream, STREAM_BENCHMARKS["Engineering"])
-    core_skills = benchmark["core_skills"]
+def analyze_resume_skills(user_skills: List[str] | None = None, stream: str = "Engineering", **kwargs) -> Dict[str, Any]:
+    """
+    Compare a student's resume skills against expected stream benchmarks.
+    Supports both user_skills and resume_skills parameter names.
+    """
+    skills_list = user_skills or kwargs.get("resume_skills") or ["Python", "Git", "SQL"]
+    expected_skills = STREAM_SKILLS.get(stream, STREAM_SKILLS["Engineering"])
 
-    user_skills_lower = {s.lower() for s in user_skills}
-    matched = [s for s in core_skills if s.lower() in user_skills_lower or any(u in s.lower() for u in user_skills_lower)]
-    missing = [s for s in core_skills if s not in matched]
+    skills_lower = {s.strip().lower() for s in skills_list}
 
-    match_pct = (len(matched) / len(core_skills)) * 100 if core_skills else 50.0
-    readiness_score = min(100, max(20, round(match_pct + (len(user_skills) * 3))))
+    matched_skills = [
+        skill for skill in expected_skills
+        if skill.lower() in skills_lower or any(u in skill.lower() for u in skills_lower)
+    ]
+    missing_critical_skills = [
+        skill for skill in expected_skills
+        if skill not in matched_skills
+    ]
 
-    bullets = [t.format(X="500", Y="45") for t in benchmark["bullet_templates"]]
+    base_score = (len(matched_skills) / len(expected_skills)) * 100 if expected_skills else 50.0
+    readiness_score = min(100, max(20, round(base_score + (len(skills_list) * 2))))
+
+    recommended_projects = []
+    seen_titles = set()
+    for skill in missing_critical_skills:
+        project = PROJECT_LIBRARY.get(skill)
+        if project and project["title"] not in seen_titles:
+            recommended_projects.append(project)
+            seen_titles.add(project["title"])
+        if len(recommended_projects) >= 3:
+            break
+
+    if not recommended_projects:
+        for skill in expected_skills[:2]:
+            project = PROJECT_LIBRARY.get(skill)
+            if project and project["title"] not in seen_titles:
+                recommended_projects.append(project)
+                seen_titles.add(project["title"])
+
+    resume_bullet_suggestions = [
+        BULLET_TEMPLATES[skill] for skill in matched_skills if skill in BULLET_TEMPLATES
+    ]
+    if not resume_bullet_suggestions:
+        resume_bullet_suggestions = [
+            f"Executed {stream} core project work using industry standard methodologies.",
+            f"Analyzed key dataset metrics to generate actionable {stream} insights."
+        ]
 
     return {
         "stream": stream,
         "readiness_score": readiness_score,
-        "matched_skills": matched,
-        "missing_critical_skills": missing,
-        "recommended_projects": benchmark["recommended_projects"],
-        "resume_bullet_suggestions": bullets
+        "matched_skills": matched_skills,
+        "missing_critical_skills": missing_critical_skills,
+        "recommended_projects": recommended_projects,
+        "resume_bullet_suggestions": resume_bullet_suggestions,
     }
