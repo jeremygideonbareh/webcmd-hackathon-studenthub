@@ -4,7 +4,7 @@ WebCMD Python Wrapper for Atlas Portal Subsystem.
 Executes deterministic JavaScript adapters using the WebCMD CLI (@agentrhq/webcmd).
 Provides:
 - Dynamic WebCMD session lifecycle management
-- Subprocess error handling and sanitization
+- Subprocess error handling and Windows .CMD resolution
 - Exponential backoff with randomized jitter
 - Automatic response caching and offline recovery
 - Data schema transformation to shared contracts
@@ -16,6 +16,7 @@ import random
 import re
 import shutil
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
@@ -24,10 +25,29 @@ from portal.attendance_extractor import parse_attendance_html
 from portal.gpa_extractor import compute_gpa_trend
 
 
+def _load_env_file():
+    """Load key-value pairs from .env if present into os.environ."""
+    env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+    if os.path.exists(env_path):
+        try:
+            with open(env_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, v = line.split("=", 1)
+                        k = k.strip()
+                        v = v.strip().strip("'\"")
+                        if k:
+                            os.environ[k] = v
+        except Exception:
+            pass
+
+
 class WebCMDAdapter:
     """Wrapper around WebCMD CLI and KP portal scraper."""
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
+        _load_env_file()
         self.config = config or {}
         self.profile = self.config.get("webcmd_profile", "kp_student")
         self.kp_base_url = self.config.get(
@@ -45,6 +65,10 @@ class WebCMDAdapter:
         os.makedirs(self.data_dir, exist_ok=True)
         os.makedirs(os.path.join(self.data_dir, "mock"), exist_ok=True)
 
+    def _get_webcmd_bin(self) -> str:
+        """Resolve executable path for webcmd on current OS."""
+        return shutil.which("webcmd") or "webcmd"
+
     def _get_env_vars(self) -> Dict[str, str]:
         """Prepare sanitized environment variables for WebCMD subprocess."""
         env = os.environ.copy()
@@ -61,10 +85,12 @@ class WebCMDAdapter:
 
     def _ensure_session(self) -> Optional[str]:
         """Ensure an active WebCMD browser session exists and return its session ID."""
+        bin_path = self._get_webcmd_bin()
         try:
             list_res = subprocess.run(
-                ["webcmd", "--profile", self.profile, "session", "list"],
-                capture_output=True, text=True, timeout=10
+                [bin_path, "--profile", self.profile, "session", "list"],
+                capture_output=True, text=True, timeout=10,
+                shell=(sys.platform == "win32")
             )
             if list_res.returncode == 0:
                 match = re.search(r"(session_[a-zA-Z0-9\-]+)", list_res.stdout)
@@ -75,8 +101,9 @@ class WebCMDAdapter:
 
         try:
             create_res = subprocess.run(
-                ["webcmd", "--profile", self.profile, "session", "create"],
-                capture_output=True, text=True, timeout=15
+                [bin_path, "--profile", self.profile, "session", "create"],
+                capture_output=True, text=True, timeout=15,
+                shell=(sys.platform == "win32")
             )
             match = re.search(r"(session_[a-zA-Z0-9\-]+)", create_res.stdout)
             if match:
@@ -99,8 +126,9 @@ class WebCMDAdapter:
         if not os.path.exists(adapter_path):
             raise FileNotFoundError(f"Adapter file not found at: {adapter_path}")
 
+        bin_path = self._get_webcmd_bin()
         session_id = self._ensure_session()
-        cmd = ["webcmd", "--profile", self.profile]
+        cmd = [bin_path, "--profile", self.profile]
         if session_id:
             cmd.extend(["--session", session_id])
         cmd.extend(["browser", "run", "--file", adapter_path])
@@ -117,7 +145,8 @@ class WebCMDAdapter:
                     capture_output=True,
                     text=True,
                     timeout=90,
-                    env=self._get_env_vars()
+                    env=self._get_env_vars(),
+                    shell=(sys.platform == "win32")
                 )
 
                 if result.returncode != 0:
