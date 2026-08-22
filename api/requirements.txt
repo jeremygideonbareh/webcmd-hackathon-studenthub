@@ -1,0 +1,2 @@
+# Vercel serverless requirements (stdlib only)
+python-dotenv>=1.0.0
