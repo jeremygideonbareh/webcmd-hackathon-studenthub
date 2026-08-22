@@ -29,60 +29,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
-import MacOSDock from "@/components/ui/mac-os-dock";
 import { SterlingGateKineticNavigation } from "@/components/ui/sterling-gate-kinetic-navigation";
 import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "#home", label: "Overview", icon: Home },
-  { href: "#attendance", label: "Attendance Risk", icon: GraduationCap },
-  { href: "#simulator", label: "Class Simulator", icon: Calculator },
   { href: "#advisor", label: "AI Skill Advisor", icon: Sparkles },
   { href: "#jobs", label: "Internships", icon: Briefcase },
   { href: "#scholarships", label: "Scholarships", icon: Award },
   { href: "#discounts", label: "Student Deals", icon: Percent },
   { href: "#housing", label: "Housing", icon: Home },
-];
-
-const DOCK_APPS = [
-  {
-    id: "attendance",
-    name: "Attendance Risk & Calculator",
-    icon: "https://cdn.jim-nielsen.com/macos/1024/calculator-2021-04-29.png?rf=1024",
-  },
-  {
-    id: "advisor",
-    name: "AI Skill & Resume Advisor",
-    icon: "https://cdn.jim-nielsen.com/macos/1024/notes-2021-05-25.png?rf=1024",
-  },
-  {
-    id: "jobs",
-    name: "Matched Internships",
-    icon: "https://cdn.jim-nielsen.com/macos/1024/finder-2021-09-10.png?rf=1024",
-  },
-  {
-    id: "scholarships",
-    name: "Scholarships & Financial Aid",
-    icon: "https://cdn.jim-nielsen.com/macos/1024/safari-2021-06-02.png?rf=1024",
-  },
-  {
-    id: "discounts",
-    name: "Student Deals & Perks",
-    icon: "https://cdn.jim-nielsen.com/macos/1024/mail-2021-05-25.png?rf=1024",
-  },
-  {
-    id: "housing",
-    name: "Campus Housing & PGs",
-    icon: "https://cdn.jim-nielsen.com/macos/1024/photos-2021-05-28.png?rf=1024",
-  },
+  { href: "#attendance", label: "Attendance Risk (KP Portal)", icon: GraduationCap },
+  { href: "#simulator", label: "Class Simulator (KP Portal)", icon: Calculator },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   // Sidebar CLOSED by default as requested
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
-  const { isLevel1Authenticated, user } = useAuth();
-  const [openApps, setOpenApps] = React.useState<string[]>(["attendance", "advisor"]);
+  const { user, isLevel2Authenticated } = useAuth();
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -94,19 +59,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [sidebarOpen]);
 
-  const handleDockAppClick = (appId: string) => {
-    setOpenApps((prev) =>
-      prev.includes(appId) ? prev.filter((id) => id !== appId) : [...prev, appId]
-    );
-
-    const targetEl = document.getElementById(appId);
-    if (targetEl) {
-      targetEl.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-background relative pb-24">
+    <div className="min-h-screen bg-background relative pb-12">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
@@ -114,7 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         Skip to main content
       </a>
 
-      {/* Kinetic Navigation Header */}
+      {/* Sterling Gate Kinetic Navigation Header */}
       <SterlingGateKineticNavigation />
 
       {/* Toggle Floating Sidebar Button (Book Icon — Closed Book when closed, Open Book when open) */}
@@ -163,7 +117,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Button>
             </div>
             <Separator />
-            <SidebarContent onNavigate={() => setSidebarOpen(false)} userEmail={user?.email} />
+            <SidebarContent onNavigate={() => setSidebarOpen(false)} userEmail={user?.email} isLevel2={isLevel2Authenticated} />
           </aside>
         </div>
       )}
@@ -172,17 +126,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main id="main-content" className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         {children}
       </main>
-
-      {/* macOS Dock anchored at bottom of website when logged in */}
-      {isLevel1Authenticated && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
-          <MacOSDock
-            apps={DOCK_APPS}
-            onAppClick={handleDockAppClick}
-            openApps={openApps}
-          />
-        </div>
-      )}
     </div>
   );
 }
@@ -202,7 +145,7 @@ function Brand({ isOpen, onClick }: { isOpen: boolean; onClick?: () => void }) {
   );
 }
 
-function SidebarContent({ onNavigate, userEmail }: { onNavigate?: () => void; userEmail?: string }) {
+function SidebarContent({ onNavigate, userEmail, isLevel2 }: { onNavigate?: () => void; userEmail?: string; isLevel2?: boolean }) {
   return (
     <>
       <nav aria-label="Main Navigation" className="flex-1 space-y-1 p-2 overflow-y-auto">
@@ -222,13 +165,13 @@ function SidebarContent({ onNavigate, userEmail }: { onNavigate?: () => void; us
       </nav>
       <Separator />
       <div className="p-4">
-        <ProfileMenu userEmail={userEmail} />
+        <ProfileMenu userEmail={userEmail} isLevel2={isLevel2} />
       </div>
     </>
   );
 }
 
-function ProfileMenu({ userEmail }: { userEmail?: string }) {
+function ProfileMenu({ userEmail, isLevel2 }: { userEmail?: string; isLevel2?: boolean }) {
   return (
     <Collapsible>
       <CollapsibleTrigger asChild>
@@ -252,8 +195,7 @@ function ProfileMenu({ userEmail }: { userEmail?: string }) {
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Profile & Stream</DropdownMenuItem>
-            <DropdownMenuItem>Preferences</DropdownMenuItem>
-            <DropdownMenuItem>Portal Credentials</DropdownMenuItem>
+            <DropdownMenuItem>KP Portal Status: {isLevel2 ? "Connected" : "Disconnected"}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </CollapsibleTrigger>
@@ -262,7 +204,7 @@ function ProfileMenu({ userEmail }: { userEmail?: string }) {
           href="#attendance"
           className="flex min-h-[36px] items-center rounded-md px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
         >
-          Risk report
+          Attendance Risk report
         </a>
         <a
           href="#advisor"
