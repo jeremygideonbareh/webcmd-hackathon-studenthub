@@ -128,6 +128,8 @@ def main() -> None:
     parser.add_argument("--mock", action="store_true", help="use mock data (default)")
     parser.add_argument("--live", action="store_true", help="use real portal/intelligence modules")
     parser.add_argument("--live-demo", action="store_true", help="live mode with demo logging")
+    parser.add_argument("--push", action="store_true",
+                        help="upload the digest to Supabase (needs SUPABASE_URL + SUPABASE_SERVICE_KEY in .env)")
     args = parser.parse_args()
 
     cfg = Config.from_yaml()
@@ -136,6 +138,17 @@ def main() -> None:
         mode = "live-demo" if args.live_demo else "live"
 
     result = run_pipeline(cfg, mode=mode)
+
+    if args.push:
+        from delivery.supabase_store import SupabaseStore
+
+        store = SupabaseStore()
+        if not store.ready:
+            print("[orchestrator] WARNING: SUPABASE_URL/SUPABASE_SERVICE_KEY not set — skipping push")
+        else:
+            store.push_digest({k: v for k, v in result.items() if k in ("attendance", "jobs", "housing", "gpa", "weights")})
+            print("[orchestrator] pushed digest to Supabase")
+
     print(json.dumps({k: v for k, v in result.items() if k in ("status", "mode")}))
     print(f"[orchestrator] digest built: {len(result['jobs'])} jobs, "
           f"{len(result['housing'])} housing, {len(result['attendance'])} attendance subjects")
