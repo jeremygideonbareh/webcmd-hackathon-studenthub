@@ -34,6 +34,9 @@ CONTRACT_FILES = (
     "gpa.json",
     "filtered_jobs.json",
     "housing_raw.json",
+    "scholarships.json",
+    "discounts.json",
+    "deadlines.json",
 )
 
 
@@ -58,6 +61,9 @@ def build_digest(cfg: Config) -> dict:
     gpa = load_json(cfg.data_dir / "gpa.json")
     jobs = load_json(cfg.data_dir / "filtered_jobs.json")
     housing = load_json(cfg.data_dir / "housing_raw.json")
+    scholarships_raw = load_json(cfg.data_dir / "scholarships.json")
+    discounts_raw = load_json(cfg.data_dir / "discounts.json")
+    deadlines_raw = load_json(cfg.data_dir / "deadlines.json")
 
     # Merge subject names from attendance into risk_report where available
     subjects_by_code = {
@@ -75,6 +81,9 @@ def build_digest(cfg: Config) -> dict:
         "attendance": attendance,
         "jobs": jobs.get("jobs", []) if isinstance(jobs, dict) else [],
         "housing": housing.get("listings", []) if isinstance(housing, dict) else [],
+        "scholarships": scholarships_raw.get("scholarships", []) if isinstance(scholarships_raw, dict) else [],
+        "discounts": discounts_raw.get("discounts", []) if isinstance(discounts_raw, dict) else [],
+        "deadlines": deadlines_raw.get("deadlines", []) if isinstance(deadlines_raw, dict) else [],
         "gpa": gpa if isinstance(gpa, dict) else {},
         "weights": db.get_all_weights(),
     }
@@ -110,12 +119,16 @@ def _gather_live(cfg: Config) -> bool:
         (cfg.data_dir / "gpa.json").write_text(json.dumps(gpa, indent=2), encoding="utf-8")
         (cfg.data_dir / "risk_report.json").write_text(json.dumps({"subjects": risk_subjects}, indent=2), encoding="utf-8")
 
-        # 2. Intelligence module (TF-IDF matcher + NoBroker housing)
+        # 2. Intelligence module (TF-IDF matcher + housing + scholarships + discounts)
         jobs_data = intelligence.get_matched_jobs()
         housing_data = intelligence.get_housing()
+        scholarships_data = intelligence.get_scholarships()
+        discounts_data = intelligence.get_discounts()
 
         (cfg.data_dir / "filtered_jobs.json").write_text(json.dumps(jobs_data, indent=2), encoding="utf-8")
         (cfg.data_dir / "housing_raw.json").write_text(json.dumps(housing_data, indent=2), encoding="utf-8")
+        (cfg.data_dir / "scholarships.json").write_text(json.dumps({"scholarships": scholarships_data}, indent=2), encoding="utf-8")
+        (cfg.data_dir / "discounts.json").write_text(json.dumps({"discounts": discounts_data}, indent=2), encoding="utf-8")
 
         print("[orchestrator] live modules executed successfully")
         return True
@@ -168,12 +181,13 @@ def main() -> None:
         if not store.ready:
             print("[orchestrator] WARNING: SUPABASE_URL/SUPABASE_SERVICE_KEY not set — skipping push")
         else:
-            store.push_digest({k: v for k, v in result.items() if k in ("attendance", "jobs", "housing", "gpa", "weights")})
+            store.push_digest({k: v for k, v in result.items() if k in ("attendance", "jobs", "housing", "scholarships", "discounts", "deadlines", "gpa", "weights")})
             print("[orchestrator] pushed digest to Supabase")
 
     print(json.dumps({k: v for k, v in result.items() if k in ("status", "mode")}))
     print(f"[orchestrator] digest built: {len(result['jobs'])} jobs, "
-          f"{len(result['housing'])} housing, {len(result['attendance'])} attendance subjects")
+          f"{len(result['housing'])} housing, {len(result.get('scholarships', []))} scholarships, "
+          f"{len(result.get('discounts', []))} discounts, {len(result['attendance'])} attendance subjects")
     print(f"[orchestrator] start the dashboard: uvicorn web.app:app --reload")
 
 
