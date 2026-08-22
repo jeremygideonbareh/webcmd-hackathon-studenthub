@@ -7,6 +7,7 @@ Endpoints:
     GET  /api/digest           → {attendance, jobs, housing, scholarships, discounts, deadlines, gpa, weights}
     POST /api/feedback         → {item_type, item_id, reaction} → learning engine
     POST /api/advisor/analyze  → {skills, stream} → stream skill gap analysis
+    POST /api/chat             → {message, stream, user_skills, gpa} → interactive AI Chatbot advisor reply
     GET  /api/scholarships     → [scholarships]
     GET  /api/discounts        → [discounts]
     GET  /api/deadlines        → [academic_deadlines]
@@ -119,6 +120,60 @@ async def live_search(request: Request) -> JSONResponse:
         skills=skills,
     )
     return JSONResponse(results)
+
+
+@app.post("/api/chat")
+async def chat_advisor(request: Request) -> JSONResponse:
+    """Interactive AI Chatbot endpoint answering student resume, skill gap, and academic questions."""
+    body = await request.json()
+    user_msg = body.get("message", "").strip()
+    stream = body.get("stream", "Engineering")
+    user_skills = body.get("user_skills", ["Python", "Git", "SQL"])
+    gpa = float(body.get("gpa", 8.2))
+
+    analysis = analyze_resume_skills(user_skills=user_skills, stream=stream)
+    missing = ", ".join(analysis.get("missing_critical_skills", []))
+    matched = ", ".join(analysis.get("matched_skills", []))
+    score = analysis.get("readiness_score", 70)
+    engine_type = analysis.get("llm_engine", "Atlas AI Core Engine")
+
+    msg_lower = user_msg.lower()
+
+    if "resume" in msg_lower or "improve" in msg_lower:
+        bullets = analysis.get("resume_bullet_suggestions", [])
+        top_bullet = bullets[0] if bullets else "Added quantitative project metrics."
+        reply = (
+            f"For your {stream} profile, your current readiness score is {score}%. "
+            f"To boost your resume, focus on highlighting your matched skills ({matched}). "
+            f"Here is a recommended bullet point to add:\n• {top_bullet}\n"
+            f"Also, build a project targeting your missing critical skills: {missing}."
+        )
+    elif "skill" in msg_lower or "lack" in msg_lower or "missing" in msg_lower:
+        reply = (
+            f"Based on your target stream ({stream}), you are currently missing: {missing}. "
+            f"Your current matching skills are: {matched}. "
+            f"I recommend working on the '{analysis['recommended_projects'][0]['title']}' project to fill these gaps!"
+        )
+    elif "scholarship" in msg_lower or "gpa" in msg_lower or "grant" in msg_lower:
+        scholarships_list = get_scholarships(gpa=gpa, stream=stream)
+        top_sch = scholarships_list[0]["name"] if scholarships_list else "National Merit Scholarship"
+        reply = (
+            f"With a CGPA of {gpa} in {stream}, you qualify for {len(scholarships_list)} scholarships! "
+            f"Your top match is: '{top_sch}'. Check out the Scholarships tab to view full details and apply."
+        )
+    elif "class" in msg_lower or "attend" in msg_lower or "miss" in msg_lower:
+        reply = (
+            f"For Christ University, attendance must be maintained above 85% to avoid fines and 75% for hall ticket eligibility. "
+            f"Use the Class Simulator tab to calculate exactly how many classes you can miss or need to attend!"
+        )
+    else:
+        reply = (
+            f"As your Atlas AI Advisor for {stream}, I analyzed your skills ({matched}). "
+            f"Your readiness score is {score}%. You can improve by picking up {missing}. "
+            f"How else can I help you with internships, scholarships, or housing today?"
+        )
+
+    return JSONResponse({"reply": reply, "llm_engine": engine_type, "analysis": analysis})
 
 
 @app.post("/api/feedback")

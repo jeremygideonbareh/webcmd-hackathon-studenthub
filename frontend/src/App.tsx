@@ -1,4 +1,5 @@
 import * as React from "react";
+import { AIChatbotWidget } from "@/components/ai-chatbot-widget";
 import { AppShell } from "@/components/app-shell";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { Hero } from "@/components/hero";
@@ -76,6 +77,9 @@ function MainContent() {
           />
         </section>
       )}
+
+      {/* Floating AI Advisor Chatbot Widget */}
+      <AIChatbotWidget />
     </AppShell>
   );
 }
