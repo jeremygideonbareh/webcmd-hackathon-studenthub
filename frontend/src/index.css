@@ -4,48 +4,49 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
-    --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
-    --primary: 262.1 83.3% 57.8%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 220 14.3% 95.9%;
-    --secondary-foreground: 220.9 39.3% 11%;
-    --muted: 220 14.3% 95.9%;
-    --muted-foreground: 220 8.9% 46.1%;
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220.9 39.3% 11%;
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 7%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 4 64% 51%; /* #D14836 Warm Terracotta */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 358 100% 79%; /* #FF9398 Soft Coral */
+    --secondary-foreground: 240 10% 4%;
+    --accent: 46 76% 68%; /* #ECD06F Sunlit Gold */
+    --accent-foreground: 240 10% 4%;
+    --muted: 240 6% 14%;
+    --muted-foreground: 240 5% 65%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 262.1 83.3% 57.8%;
-    --radius: 0.5rem;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 6% 16%;
+    --input: 240 6% 16%;
+    --ring: 4 64% 51%;
+    --radius: 0.75rem;
+
+    --font-display: "Syne", "Bebas Neue", sans-serif;
+    --font-sans: "Outfit", -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
   .dark {
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 20% 98%;
-    --card: 224 71.4% 4.1%;
-    --card-foreground: 210 20% 98%;
-    --popover: 224 71.4% 4.1%;
-    --popover-foreground: 210 20% 98%;
-    --primary: 263.4 70% 50.4%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 263.4 70% 50.4%;
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 7%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 4 64% 51%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 358 100% 79%;
+    --secondary-foreground: 240 10% 4%;
+    --accent: 46 76% 68%;
+    --accent-foreground: 240 10% 4%;
+    --muted: 240 6% 14%;
+    --muted-foreground: 240 5% 65%;
+    --border: 240 6% 16%;
+    --input: 240 6% 16%;
+    --ring: 4 64% 51%;
   }
 }
 
@@ -59,9 +60,36 @@
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-[#0b0b0e] text-foreground font-sans antialiased;
+    font-family: var(--font-sans);
   }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.03em;
+  }
+}
+
+/* Custom Aalto Display & Harmony Gradient Utilities */
+.aalto-title {
+  font-family: "Syne", "Bebas Neue", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  font-weight: 800;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #FF9398 0%, #D14836 45%, #ECD06F 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-border {
+  border-image: linear-gradient(135deg, rgba(255, 147, 152, 0.4), rgba(209, 72, 54, 0.4), rgba(236, 208, 111, 0.3)) 1;
+}
+
+.gradient-bg-subtle {
+  background: linear-gradient(135deg, rgba(209, 72, 54, 0.12) 0%, rgba(255, 147, 152, 0.08) 50%, rgba(236, 208, 111, 0.06) 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {

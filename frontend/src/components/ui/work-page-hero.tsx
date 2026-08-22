@@ -9,43 +9,24 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// ---------------------------------------------------------------------------
-// Types & Defaults
-// ---------------------------------------------------------------------------
 export interface TimezoneClock {
   tz: string;
   label: string;
 }
 
 export interface WorkPageHeroProps {
-  /**
-   * Video source URL. Supports direct video files (.mp4, .webm, cdn streams)
-   * or iframe embeds (Cloudinary player, Vimeo, YouTube).
-   */
   videoSrc?: string;
-  /** Video poster / thumbnail image URL */
   poster?: string;
-  /** Explicitly set video rendering mode, or auto-detect based on URL */
   videoType?: "auto" | "video" | "iframe";
-  /** Top overlay word (default: "creating") */
   topWord?: string;
-  /** Right side overlay word (default: "your") */
   rightWord?: string;
-  /** Bottom overlay word (default: "story") */
   bottomWord?: string;
-  /** Accent color for highlighted text and clock timestamps (default: "#f97316") */
   accentColor?: string;
-  /** Secondary text color (default: "#000000") */
   textColor?: string;
-  /** Background color of the hero viewport (default: "#fafafa") */
   backgroundColor?: string;
-  /** Whether to display the live world timezone clocks */
   showClocks?: boolean;
-  /** Array of timezones and city labels to display in the live clocks */
   clocks?: TimezoneClock[];
-  /** GSAP ScrollTrigger end scroll distance (default: "+=150%") */
   scrollDistance?: string;
-  /** Additional container CSS classes */
   className?: string;
 }
 
@@ -58,9 +39,6 @@ const DEFAULT_CLOCKS: TimezoneClock[] = [
   { tz: "Asia/Dubai", label: "DUBAI" },
 ];
 
-// ---------------------------------------------------------------------------
-// Helper – Live World Timezone Clock Hook
-// ---------------------------------------------------------------------------
 function useLiveTime() {
   const [time, setTime] = useState<Date>(() => new Date());
 
@@ -86,19 +64,14 @@ function useLiveTime() {
   return { formatTime };
 }
 
-// ---------------------------------------------------------------------------
-// Component – WorkPageHero / ScrollExpandHero
-// ---------------------------------------------------------------------------
 export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
   videoSrc = DEFAULT_VIDEO_URL,
   poster,
   videoType = "auto",
-  topWord = "atlas",
-  rightWord = "student",
-  bottomWord = "hub",
-  accentColor = "#f97316",
-  textColor = "#000000",
-  backgroundColor = "#fafafa",
+  topWord = "ATLAS",
+  rightWord = "STUDENT",
+  bottomWord = "HUB",
+  backgroundColor = "#0b0b0e",
   showClocks = true,
   clocks = DEFAULT_CLOCKS,
   scrollDistance = "+=150%",
@@ -167,48 +140,53 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
         ref={containerRef}
         className="relative h-screen min-h-[520px] w-full overflow-hidden select-none"
       >
-        {/* ── Animated Kinetic Typography Overlay ── */}
+        {/* ── Animated Aalto Kinetic Typography Overlay ── */}
         <div
           ref={textGroupRef}
           className="absolute inset-0 z-30 pointer-events-none flex flex-col justify-between"
           style={{ willChange: "transform, opacity, filter" }}
         >
-          {/* Top Word */}
+          {/* Top Word: ATLAS (Aalto Display Font with Coral -> Terracotta Gradient) */}
           <div className="absolute top-[2%] inset-x-0 flex justify-center">
             <span
-              className="font-black tracking-tighter leading-none select-none text-center"
+              className="font-extrabold uppercase tracking-tighter leading-none select-none text-center"
               style={{
-                color: accentColor,
-                fontSize: "clamp(3.5rem, 11vw, 11rem)",
-                fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                background: "linear-gradient(135deg, #FF9398 0%, #D14836 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                fontSize: "clamp(4rem, 13vw, 13rem)",
+                fontFamily: "'Syne', 'Bebas Neue', sans-serif",
+                textShadow: "0 10px 30px rgba(209, 72, 54, 0.2)",
               }}
             >
               {topWord}
             </span>
           </div>
 
-          {/* Right Word */}
-          <div className="absolute right-[3%] top-[38%] flex items-center">
+          {/* Right Word: STUDENT (Aalto Display Font in Crisp White Accent) */}
+          <div className="absolute right-[3%] top-[36%] flex items-center">
             <span
-              className="font-black tracking-tighter leading-none select-none"
+              className="font-extrabold uppercase tracking-tighter leading-none select-none drop-shadow-2xl"
               style={{
-                color: textColor,
-                fontSize: "clamp(3.5rem, 11vw, 11rem)",
-                fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                color: "#FFFFFF",
+                fontSize: "clamp(3.8rem, 12vw, 12rem)",
+                fontFamily: "'Syne', 'Bebas Neue', sans-serif",
               }}
             >
               {rightWord}
             </span>
           </div>
 
-          {/* Bottom Word (Serif / Editorial) */}
+          {/* Bottom Word: HUB (Aalto Display Font in Terracotta -> Gold Gradient) */}
           <div className="absolute bottom-[2%] inset-x-0 flex justify-center">
             <span
-              className="font-normal italic leading-none select-none text-center"
+              className="font-extrabold uppercase tracking-tighter leading-none select-none text-center"
               style={{
-                color: accentColor,
-                fontSize: "clamp(4rem, 14vw, 13rem)",
-                fontFamily: "Georgia, 'Times New Roman', Cambria, serif",
+                background: "linear-gradient(135deg, #D14836 0%, #ECD06F 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                fontSize: "clamp(4.5rem, 15vw, 14rem)",
+                fontFamily: "'Syne', 'Bebas Neue', sans-serif",
               }}
             >
               {bottomWord}
@@ -219,15 +197,15 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
           {showClocks && clocks.length > 0 && (
             <div
               className="absolute left-[clamp(1.25rem,4vw,5rem)] top-1/2 -translate-y-1/2 flex flex-col gap-3 font-mono text-[clamp(9px,1.1vw,12px)] uppercase tracking-[0.15em] opacity-90"
-              style={{ color: accentColor }}
+              style={{ color: "#ECD06F" }}
             >
               {clocks.map(({ tz, label }) => (
                 <div
                   key={tz}
                   className="flex items-center gap-[clamp(0.5rem,1.2vw,1.5rem)] font-medium"
                 >
-                  <span className="tabular-nums font-semibold">{formatTime(tz)}</span>
-                  <span style={{ color: textColor }}>{label}</span>
+                  <span className="tabular-nums font-semibold text-[#FF9398]">{formatTime(tz)}</span>
+                  <span style={{ color: "#FFFFFF" }}>{label}</span>
                 </div>
               ))}
             </div>
@@ -237,7 +215,7 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
         {/* ── Center Expanding Video Pill ── */}
         <div
           ref={videoWrapperRef}
-          className="absolute z-20 overflow-hidden shadow-2xl transition-[border-radius]"
+          className="absolute z-20 overflow-hidden shadow-2xl transition-[border-radius] border border-white/10"
           style={{
             top: "18%",
             bottom: "18%",
