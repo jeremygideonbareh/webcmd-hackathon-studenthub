@@ -1,6 +1,6 @@
 # 🗺️ Atlas — StudentHub Hackathon Project
 
-> **One platform that scrapes your college portal, calculates your attendance risk, finds you internships you're actually qualified for, and learns from your feedback — all delivered to Discord.**
+> **One platform that scrapes your college portal, calculates your attendance risk, finds you internships you're actually qualified for, and learns from your feedback — all delivered on a live web dashboard.**
 
 ---
 
@@ -12,7 +12,7 @@ Atlas has three main subsystems built by three team members working in parallel:
 |------------|------|-----------|--------|
 | **Aaron** | Portal Engineer | WebCMD + KP portal scraping + attendance calculus | `aaron/portal` |
 | **Sapna** | Intelligence Architect | Resume parser + job/housing scrapers + TF-IDF matcher | `sapna/intel` |
-| **Jeremy** | Integration Commander | Discord delivery + self-learning engine + orchestrator | `jeremy/delivery` |
+| **Jeremy** | Integration Commander | Web dashboard (FastAPI) + self-learning engine + orchestrator | `jeremy/delivery` |
 
 ---
 
@@ -33,7 +33,11 @@ cp .env.example .env
 # Edit .env with your credentials
 
 # 4. Run the full pipeline
-python orchestrator.py
+python orchestrator.py --mock
+
+# 5. Start the dashboard
+uvicorn web.app:app --reload
+# → open http://127.0.0.1:8000
 ```
 
 ---
@@ -59,10 +63,12 @@ atlas/
 │   ├── matcher.py
 │   └── gpa_filter.py
 ├── delivery/                       # Jeremy's domain
-│   ├── discord_webhook.py
-│   ├── discord_bot.py
 │   ├── learning_engine.py
-│   └── database.py
+│   ├── database.py
+│   └── notify_discord.py           # OPTIONAL webhook bonus
+├── web/                            # Jeremy's domain — web delivery
+│   ├── app.py                      # FastAPI dashboard
+│   └── static/                     # index.html, app.js, style.css
 ├── data/mock/                      # Shared mock data for independent testing
 └── prompts/                        # AI agent starting prompts per team member
     ├── AARON_PROMPT.md
@@ -80,7 +86,7 @@ Each team member has a personalized starting prompt in `prompts/`. Copy-paste yo
 |-----|-----------|---------------|
 | **Aaron** | [`prompts/AARON_PROMPT.md`](prompts/AARON_PROMPT.md) | WebCMD adapter + KP portal scraper + attendance math |
 | **Sapna** | [`prompts/SAPNA_PROMPT.md`](prompts/SAPNA_PROMPT.md) | Resume parser + Internshala scraper + TF-IDF matcher + housing scraper |
-| **Jeremy** | [`prompts/JEREMY_PROMPT.md`](prompts/JEREMY_PROMPT.md) | Discord webhook + reaction bot + self-learning engine + orchestrator |
+| **Jeremy** | [`prompts/JEREMY_PROMPT.md`](prompts/JEREMY_PROMPT.md) | FastAPI dashboard + reaction buttons + self-learning engine + orchestrator |
 
 ---
 
@@ -111,7 +117,7 @@ All modules communicate via JSON files in `data/`. See [`IMPLEMENTATION_PLAN.md`
 
 ## 🧠 The Self-Learning Loop
 
-React to Discord messages with emojis. Atlas learns your preferences:
+Click reaction buttons on job cards in the dashboard. Atlas learns your preferences:
 - 👍 = Boost similar results (1.2x)
 - 👎 = Suppress similar results (0.8x)
 - ⭐ = Favorite (1.5x boost)

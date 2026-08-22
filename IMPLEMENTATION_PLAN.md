@@ -88,7 +88,7 @@ graph TB
 | **Language** | Python 3.10+ | Fast prototyping, rich ecosystem |
 | **NLP/Matching** | scikit-learn (TF-IDF + cosine similarity) | No GPU needed, works locally, <1ms per match, fully explainable |
 | **Database** | SQLite3 (stdlib) | Zero setup, file-based, perfect for hackathon |
-| **Discord Delivery** | `discord-webhook` + `discord.py` | Webhooks for push alerts, bot for `on_raw_reaction_add` reaction listening |
+| **Web Delivery** | FastAPI + uvicorn + vanilla JS | Single Python stack, no Node build step. Dashboard reads `data/*.json`; reaction buttons drive the learning loop via `POST /api/feedback`. Optional Discord webhook bonus (`delivery/notify_discord.py`). |
 | **Resume Parsing** | `pylatexenc` + `TexSoup` + regex fallback | Multi-engine: pylatexenc for TF-IDF text, TexSoup for section extraction |
 | **Job Scraping** | `curl_cffi` + `BeautifulSoup4` | curl_cffi mimics Chrome TLS fingerprint (bypasses Cloudflare on Internshala) |
 | **Housing Scraping** | `requests` (NoBroker REST API) | NoBroker has an internal JSON API â€” no HTML parsing needed |
@@ -104,8 +104,9 @@ npm install -g @agentrhq/webcmd
 # Verify installation
 webcmd doctor
 
-# Create persistent profile for KP portal (saves cookies/session across runs)
-webcmd session create --profile kp_student -f json
+# Create a session for the kp_student profile (saves cookies/session across runs)
+# NOTE: --profile is a ROOT flag — session create has no --profile option
+webcmd --profile kp_student session create -f json
 ```
 
 ### Python Dependencies (`requirements.txt`)
@@ -128,9 +129,9 @@ numpy>=1.24.0
 pylatexenc>=2.10
 TexSoup>=0.3.1
 
-# Discord
-discord-webhook>=1.3.0
-discord.py>=2.3.0
+# Web Delivery
+fastapi>=0.110.0
+uvicorn>=0.29.0
 
 # Database (stdlib â€” no install needed)
 # sqlite3
@@ -163,15 +164,15 @@ discord.py>=2.3.0
 | GPA-gated filter (reads GPA from Aaron's output) | `data/filtered_jobs.json` | Orchestrator (Jeremy) |
 
 ### Jeremy â€” "The Integration Commander"
-**Focus**: Discord delivery, feedback loop, SQLite ledger, main orchestrator pipeline
+**Focus**: Web delivery (FastAPI dashboard), feedback loop, SQLite ledger, main orchestrator pipeline
 
 | Responsibility | Output File | Consumed By |
 |---------------|-------------|-------------|
-| Discord webhook sender (rich embeds) | `discord_webhook.py` | Orchestrator |
-| Discord bot (reaction listener) | `discord_bot.py` | Self-Learning Engine |
+| FastAPI web dashboard (digest + feedback buttons) | `web/app.py`, `web/static/` | User (browser) |
 | SQLite ledger (preferences, history) | `atlas.db` | GPA-Gated Filter, Orchestrator |
 | Self-learning weight update engine | `learning_engine.py` | SQLite Ledger |
 | Main orchestrator pipeline | `orchestrator.py` | Everything |
+| Optional Discord webhook bonus | `notify_discord.py` | Orchestrator (if enabled) |
 | Project scaffolding, CI, shared config | `config.py`, `requirements.txt` | Everyone |
 
 ---
@@ -226,7 +227,7 @@ discord.py>=2.3.0
 
 **Attendance Calculus Formula:**
 - To find **classes you can skip** while staying above threshold $\theta$:
-  $$\text{can\_skip} = \left\lfloor \frac{P - \theta \cdot T}{1 - \theta} \right\rfloor \quad \text{(if positive, else 0)}$$
+  $$\text{can\_skip} = \left\lfloor \frac{P - \theta \cdot T}{\theta} \right\rfloor \quad \text{(if positive, else 0)}$$
   where $P$ = classes present (as fraction of total that gives current%), $T$ = total classes.
   
   More precisely: Let current present = $p$, total = $t$. We want $(p) / (t + k) \geq \theta$ where $k$ = future classes skipped. Solving: $k \leq (p - \theta t) / \theta$. So $\text{can\_skip} = \lfloor (p - \theta t) / \theta \rfloor$ if positive.
@@ -375,7 +376,7 @@ CREATE TABLE digest_history (
 | 0:00 | Clone repo, set up branch `portal/main` | Clone repo, set up branch `intel/main` | **Scaffold entire project structure**, create `main` branch, push shared schemas |
 | 0:15 | Install WebCMD, test basic browser launch | Install scikit-learn, bs4, requests | Create `config.py`, `.env.example`, `requirements.txt` |
 | 0:30 | Get KP portal URL, study login form HTML | Get sample LaTeX resume, study .tex format | Set up SQLite schema, create `database.py` |
-| 0:45 | Write WebCMD adapter skeleton | Write resume parser skeleton | Set up Discord webhook, test "Hello World" embed |
+| 0:45 | Write WebCMD adapter skeleton | Write resume parser skeleton | Set up SQLite schema, test `database.py` CRUD |
 | 1:00 | ðŸ”— **Checkpoint 1**: Everyone pulls from main, verify project structure works |
 
 **Jeremy's scaffolding creates this structure:**
@@ -384,7 +385,7 @@ CREATE TABLE digest_history (
 atlas/
 â”œâ”€â”€ README.md
 â”œâ”€â”€ requirements.txt
-â”œâ”€â”€ .env.example                    # DISCORD_WEBHOOK_URL, DISCORD_BOT_TOKEN, KP_USERNAME, KP_PASSWORD
+â”œâ”€â”€ .env.example                    # KP_USERNAME, KP_PASSWORD, WEBCMD_PROFILE, HOUSING_*, DISCORD_WEBHOOK_URL(optional)
 â”œâ”€â”€ .gitignore
 â”œâ”€â”€ config.py                       # Loads .env, YAML config
 â”œâ”€â”€ config.yaml                     # Thresholds, URLs, scraper settings
@@ -405,10 +406,12 @@ atlas/
 â”‚   â””â”€â”€ gpa_filter.py              # GPA-gated job filtering
 â”œâ”€â”€ delivery/                       # Jeremy's domain
 â”‚   â”œâ”€â”€ __init__.py
-â”‚   â”œâ”€â”€ discord_webhook.py          # Send rich embeds
-â”‚   â”œâ”€â”€ discord_bot.py              # Listen for reactions
 â”‚   â”œâ”€â”€ learning_engine.py          # Update preference weights
-â”‚   â””â”€â”€ database.py                 # SQLite operations
+â”‚   â”œâ”€â”€ database.py                 # SQLite operations
+â”‚   â””â”€â”€ notify_discord.py           # OPTIONAL webhook bonus
+â”œâ”€â”€ web/                            # Jeremy's domain — web delivery
+â”‚   â”œâ”€â”€ app.py                     # FastAPI dashboard + /api/digest + /api/feedback
+â”‚   â””â”€â”€ static/                     # index.html, app.js, style.css
 â”œâ”€â”€ data/                           # All intermediate JSON files
 â”‚   â”œâ”€â”€ .gitkeep
 â”‚   â”œâ”€â”€ sample_resume.tex           # Test resume
@@ -420,9 +423,11 @@ atlas/
 â”‚       â”œâ”€â”€ filtered_jobs.json
 â”‚       â””â”€â”€ housing_raw.json
 â””â”€â”€ tests/
-    â”œâ”€â”€ test_calculus.py
+â”œâ”€â”€ test_calculus.py
     â”œâ”€â”€ test_matcher.py
-    â””â”€â”€ test_webhook.py
+    â”œâ”€â”€ test_database.py
+    â”œâ”€â”€ test_learning_engine.py
+    â””â”€â”€ test_web_api.py
 ```
 
 ### Phase 2: Core Implementation (Hours 1â€“5)
@@ -430,10 +435,10 @@ atlas/
 | Time | Aaron (Portal) | Sapna (Intelligence) | Jeremy (Integration) |
 |------|-------------------|------------------------|----------------------|
 | 1:00â€“2:00 | Implement WebCMD login flow: handle captcha, cookies, session tokens | Implement LaTeX resume parser with `pylatexenc` | Create **mock data files** for ALL contracts, so everyone can test independently |
-| 2:00â€“3:00 | Navigate to attendance page, parse HTML table, extract P & T | Build Internshala scraper: search page â†’ job list â†’ extract details | Implement Discord webhook sender with rich embeds (attendance, jobs, housing sections) |
-| 3:00â€“3:30 | Implement attendance calculus (floor/ceiling formulas) | Build SimplyHired scraper as backup source | Implement orchestrator skeleton: load data â†’ build digest â†’ send webhook |
-| 3:30â€“4:00 | Navigate to GPA/grades page, extract CGPA and SGPA | Implement TF-IDF matcher: vectorize resume + job descriptions, compute cosine similarity | ðŸ”— **Checkpoint 2**: Jeremy tests orchestrator with mock data, sends test Discord message |
-| 4:00â€“5:00 | Handle edge cases: semester transitions, missing data, login failures | Implement GPA-gated filter logic (competitive/balanced/portfolio modes) | Start Discord bot for reaction listening |
+| 2:00â€“3:00 | Navigate to attendance page, parse HTML table, extract P & T | Build Internshala scraper: search page â†’ job list â†’ extract details | Implement FastAPI `web/app.py`: GET /, /api/digest reading data/*.json |
+| 3:00â€“3:30 | Implement attendance calculus (floor/ceiling formulas) | Build SimplyHired scraper as backup source | Implement dashboard static files: attendance cards, job cards, housing |
+| 3:30â€“4:00 | Navigate to GPA/grades page, extract CGPA and SGPA | Implement TF-IDF matcher: vectorize resume + job descriptions, compute cosine similarity | ðŸ”— **Checkpoint 2**: Jeremy runs orchestrator with mock data, dashboard shows digest live |
+| 4:00â€“5:00 | Handle edge cases: semester transitions, missing data, login failures | Implement GPA-gated filter logic (competitive/balanced/portfolio modes) | Implement `POST /api/feedback` → learning engine → SQLite |
 
 ### Phase 3: Scavengers & Learning (Hours 5â€“7)
 
@@ -450,8 +455,8 @@ atlas/
 |------|-------------------|------------------------|----------------------|
 | 7:00â€“7:30 | Fix integration bugs from Checkpoint 3 | Fix integration bugs from Checkpoint 3 | Wire all real modules into orchestrator, replace mock data calls |
 | 7:30â€“8:00 | Add GPA trend detection (compare with previous scrape) | Tune TF-IDF: adjust stop words, add skill synonyms | Implement the **GPAâ†’InternRadar feedback loop**: if GPA drops, switch mode |
-| 8:00â€“8:30 | Polish attendance alert messages | Add match score explanations (why this job matched) | Build the full digest message format with all sections |
-| 8:30â€“9:00 | End-to-end test: login â†’ scrape â†’ calculus â†’ JSON | End-to-end test: parse resume â†’ scrape jobs â†’ match â†’ filter | ðŸ”— **Checkpoint 4**: Full end-to-end pipeline test, Discord message with real data |
+| 8:00â€“8:30 | Polish attendance alert messages | Add match score explanations (why this job matched) | Polish dashboard layout + digest sections |
+| 8:30â€“9:00 | End-to-end test: login â†’ scrape â†’ calculus â†’ JSON | End-to-end test: parse resume â†’ scrape jobs â†’ match â†’ filter | ðŸ”— **Checkpoint 4**: Full end-to-end pipeline test, dashboard with real data |
 
 ### Phase 5: Lock & Demo Prep (Hours 9â€“10)
 
@@ -483,7 +488,9 @@ This is a **deterministic WebCMD adapter** that runs via CLI. Aaron writes this 
 ```javascript
 /**
  * WebCMD Adapter: Knowledge Pro (KP) Portal Attendance Extractor
- * Run: webcmd --profile kp_student browser run --file kp_attendance_adapter.js -f json
+ * Run: webcmd --profile kp_student --session <session-id> browser run --file kp_attendance_adapter.js
+ * NOTE: browser run has no -f flag; the program's return value is the output.
+ */
  */
 export default async function run({ page, profile }) {
   const KP_BASE_URL = 'https://kp.christuniversity.in/KnowledgePro';
@@ -562,11 +569,13 @@ Usage:
 import subprocess
 import json
 import os
+import shutil
 from datetime import datetime
 
 class WebCMDAdapter:
     def __init__(self, config):
         self.profile = config.get('webcmd_profile', 'kp_student')
+        self.session_id = config.get('webcmd_session_id', '')  # from `webcmd --profile <name> session create -f json`
         self.adapter_dir = os.path.join(os.path.dirname(__file__), 'adapters')
         
         # Set KP credentials as env vars for the WebCMD subprocess
@@ -576,13 +585,21 @@ class WebCMDAdapter:
     def _run_adapter(self, adapter_filename: str) -> dict:
         """Execute a WebCMD adapter script and return parsed JSON."""
         adapter_path = os.path.join(self.adapter_dir, adapter_filename)
-        
+
+        # Windows: npm installs webcmd.cmd — resolve the full path so subprocess
+        # can execute it without shell=True.
+        webcmd = shutil.which('webcmd')
+        if webcmd is None:
+            raise RuntimeError("webcmd not found on PATH. Run: npm install -g @agentrhq/webcmd")
+
+        # Raw `browser run` REQUIRES a root --session <id>. NOTE: browser run
+        # has no -f flag — the program's return value IS the output.
         cmd = [
-            'webcmd',
+            webcmd,
             '--profile', self.profile,
+            '--session', self.session_id,
             'browser', 'run',
-            '--file', adapter_path,
-            '-f', 'json'
+            '--file', adapter_path
         ]
         
         try:
@@ -971,14 +988,79 @@ def scrape_nobroker(city="bangalore", locality="Katpadi", max_budget=25000):
     return []
 ```
 
-### Module 4: Discord Webhook (`delivery/discord_webhook.py`) â€” Jeremy
+### ~~Module 4: Discord Webhook~~ → REPLACED by Web Dashboard
 
 > [!IMPORTANT]
-> **Key Discord API details from research:**
-> - Use `?wait=true` query param to get the message ID back (needed for reaction tracking)
-> - Handle `429` rate limits with `retry_after` from response JSON
-> - Max 10 embeds per message
-> - Webhooks are **outbound only** â€” they cannot listen for reactions. That's why we need the separate Discord Bot (Module 5).
+> **PIVOT (2026-08-22):** Discord webhook delivery is **cancelled**. It is replaced by the FastAPI web dashboard below. The old Discord code below is kept only as reference for the embed color scheme and rate-limit patterns — do NOT build it. The optional `delivery/notify_discord.py` webhook bonus is the only Discord code that may exist.
+
+### Module 4b: Web Dashboard (`web/app.py` + `web/static/`) — Jeremy
+
+> FastAPI + vanilla JS. Single Python stack, no Node build step. Serves the digest from `data/*.json` and turns the emoji-reaction learning loop into button clicks.
+
+```
+GET  /                    → static/index.html (dashboard)
+GET  /api/digest          → {attendance: [...], jobs: [...], housing: [...], gpa: {...}}
+POST /api/feedback        → {item_type, item_id, reaction} → learning_engine.process_reaction()
+```
+
+Key mechanics:
+- `/api/digest` reads `data/attendance.json`, `data/risk_report.json`, `data/gpa.json`, `data/filtered_jobs.json`, `data/housing_raw.json` fresh on each call. After any pipeline run, a page refresh shows new data — no restart needed.
+- Dashboard renders: attendance risk cards (color-coded SAFE/CAUTION/WARNING/DANGER), job cards with 👍👎⭐🚫 buttons, housing listings.
+- `POST /api/feedback` maps to `LearningEngine.process_reaction()` (same multipliers, same SQLite). Buttons re-render with a subtle "learned ✓" state.
+- Color scheme carries over from the old embed design: SAFE=green(#2ecc71), CAUTION=yellow(#f39c12), WARNING=orange(#e67e22), DANGER=red(#e74c3c), JOB=purple, HOUSING=teal.
+
+```python
+"""
+Web Dashboard — FastAPI app.
+Run: uvicorn web.app:app --reload
+"""
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
+
+from delivery.database import Database
+from delivery.learning_engine import LearningEngine
+
+app = FastAPI(title="Atlas")
+BASE = Path(__file__).parent
+DATA = BASE.parent / "data"
+db = Database()
+engine = LearningEngine(db)
+
+app.mount("/static", StaticFiles(directory=BASE / "static"), name="static")
+
+@app.get("/")
+def dashboard() -> FileResponse:
+    return FileResponse(BASE / "static" / "index.html")
+
+@app.get("/api/digest")
+def digest() -> dict:
+    def load(name: str) -> list:
+        f = DATA / name
+        if not f.exists():
+            return []  # graceful empty data — see Anti-Integration-Failure Rules
+        import json
+        return json.loads(f.read_text())
+    return {
+        "attendance": load("risk_report.json"),
+        "jobs": load("filtered_jobs.json"),
+        "housing": load("housing_raw.json"),
+        "gpa": load("gpa.json"),
+        "weights": db.get_all_weights(),
+    }
+
+@app.post("/api/feedback")
+async def feedback(request: Request) -> JSONResponse:
+    body = await request.json()
+    engine.process_reaction(
+        message_id=str(body["item_id"]),
+        item_type=body["item_type"],
+        item_id=body["item_id"],
+        reaction=body["reaction"],
+    )
+    return JSONResponse({"ok": True, "weights": db.get_all_weights()})
+```
 
 ```python
 """
@@ -1042,13 +1124,13 @@ class DiscordWebhook:
         return None
 ```
 
-### Module 5: Discord Bot + Self-Learning Engine â€” Jeremy
+### Module 5: Self-Learning Engine (`delivery/learning_engine.py`) — Jeremy
 
 > [!IMPORTANT]
-> **Critical architectural detail from research:**
-> - Use `on_raw_reaction_add(payload)` â€” NOT `on_reaction_add(reaction, user)`
-> - `on_reaction_add` requires the message to be in the bot's memory cache. If the bot restarts or the webhook message isn't cached, it **silently fails**.
-> - `on_raw_reaction_add` triggers for EVERY reaction regardless of cache state.
+> **PIVOT (2026-08-22):** The Discord bot (`on_raw_reaction_add`) is **cancelled**. The **Self-Learning Engine below is unchanged** and remains core — its `process_reaction()` is now called by the web dashboard's `POST /api/feedback` instead of a Discord reaction event. The bot code is kept only as historical reference for the emoji→multiplier mapping.
+
+> [!IMPORTANT]
+> **Critical architectural detail (still true):** use raw event handlers (like `on_raw_reaction_add`) when listening to third-party events, NOT cached-state handlers that silently fail. The web equivalent is: stateless POST endpoints reading the request body — never rely on in-memory message cache.
 
 #### Discord Bot (`delivery/discord_bot.py`)
 
@@ -1242,18 +1324,18 @@ gitgraph
 ```mermaid
 sequenceDiagram
     participant O as Orchestrator
-    participant D as Discord Webhook
-    participant U as User (Discord)
-    participant B as Discord Bot
+    participant W as Web Dashboard
+    participant U as User (browser)
+    participant F as POST /api/feedback
     participant L as Learning Engine
     participant DB as SQLite Ledger
     participant M as TF-IDF Matcher
 
-    O->>D: Send digest (jobs, housing, attendance)
-    D->>U: Rich embed with reaction prompts
-    U->>B: Reacts with ðŸ‘/ðŸ‘Ž/â­/ðŸš«
-    B->>L: Forward reaction event
-    L->>DB: Log reaction + update category weights
+    O->>W: Pipeline writes data/*.json
+    W->>U: Dashboard renders digest (jobs, housing, attendance)
+    U->>F: Clicks 👍👎⭐🚫 on a card
+    F->>L: process_reaction(item_type, item_id, reaction)
+L->>DB: Log reaction + update category weights
     Note over DB: python_jobs: 1.2â†’1.44 (ðŸ‘ðŸ‘)<br/>remote: 0.8 (ðŸ‘Ž)<br/>web_dev: 1.5 (â­)
     O->>DB: Next run: load updated weights
     O->>M: Pass weights to matcher
@@ -1304,7 +1386,9 @@ python -m pytest tests/ -v
 # Individual module tests
 python -m pytest tests/test_calculus.py -v    # Aaron: attendance math
 python -m pytest tests/test_matcher.py -v     # Sapna: TF-IDF scoring
-python -m pytest tests/test_webhook.py -v     # Jeremy: Discord delivery
+python -m pytest tests/test_database.py -v    # Jeremy: SQLite
+python -m pytest tests/test_learning_engine.py -v  # Jeremy: weight engine
+python -m pytest tests/test_web_api.py -v     # Jeremy: dashboard API
 ```
 
 ### Manual Verification
@@ -1313,12 +1397,12 @@ python -m pytest tests/test_webhook.py -v     # Jeremy: Discord delivery
 |---|------|----------------|-----|
 | 1 | Run WebCMD login to KP portal | Successfully logs in, extracts attendance table | Aaron |
 | 2 | Parse sample LaTeX resume | Extracts all skills, education, experience | Sapna |
-| 3 | Send test Discord webhook | Rich embed appears in test Discord channel | Jeremy |
-| 4 | Full pipeline with mock data | Digest appears in Discord with all sections | Jeremy |
-| 5 | Full pipeline with real KP data | Real attendance + real jobs in Discord | All 3 |
-| 6 | React to Discord message with ðŸ‘ | Weight for that job category increases in SQLite | Jeremy |
-| 7 | Run pipeline again after reaction | Job ranking reflects updated preferences | Sapna + C |
-| 8 | Simulate GPA drop | Job mode switches from competitive to portfolio | Aaron + B |
+| 3 | Start web app: `uvicorn web.app:app --reload` | Dashboard loads, shows mock data | Jeremy |
+| 4 | Full pipeline with mock data | `python orchestrator.py --mock` → dashboard shows all sections | Jeremy |
+| 5 | Full pipeline with real KP data | Real attendance + real jobs on dashboard | All 3 |
+| 6 | Click ðŸ‘ on a job card | Weight for that job category increases in SQLite | Jeremy |
+| 7 | Refresh dashboard / rerun pipeline | Job ranking reflects updated preferences | Sapna + Jeremy |
+| 8 | Simulate GPA drop | Job mode switches from competitive to portfolio | Aaron + Sapna |
 
 ---
 
@@ -1344,22 +1428,21 @@ python -m pytest tests/test_webhook.py -v     # Jeremy: Discord delivery
 - Show the GPA-gated filter in action
 
 #### Act 4 â€” The Payoff (90 seconds)
-- Pull up phone with Discord app
-- Show the digest dropping in real-time:
-  > **ðŸ—ºï¸ Atlas Daily Digest â€” August 22, 2026**
+- Open the web dashboard in the browser (share screen or projector)
+- Show the live Atlas page:
+  > **âš ï¸ EEE Attendance: 80.77%** â€” Must attend next 3 classes to hit 85%
   >
-  > âš ï¸ **EEE Attendance: 80.77%** â€” Must attend next 3 classes to hit 85%
-  >
-  > ðŸ’¼ **Top 3 Internships Matching Your Profile:**
+  > **ðŸ’¼ Top 3 Internships Matching Your Profile:**
   > 1. Python Developer @ TechCorp (87% match) â€” â‚¹15K/mo
   > 2. MATLAB Research Intern @ IISc (82% match) â€” â‚¹20K/mo
   > 3. C Systems Intern @ Qualcomm (79% match) â€” â‚¹25K/mo
   >
-  > ðŸ  **New Listing**: 2BHK Semi-Furnished near campus â€” â‚¹12K/mo
+  > **ðŸ  New Listing**: 2BHK Semi-Furnished near campus â€” â‚¹12K/mo
 
 #### Act 5 â€” The Learning (60 seconds)
-- React to the Discord message with ðŸ‘ on the Python job and ðŸ‘Ž on the MATLAB job
-- Run the pipeline again
+- Click ðŸ‘ on the Python job card and ðŸ‘Ž on the MATLAB job card
+- Rerun the pipeline (`python orchestrator.py --mock`)
+- Refresh the dashboard
 - Show how Python jobs moved up and MATLAB jobs moved down
 - *"Atlas learns. Every reaction you give makes it smarter. It's not just a scraper â€” it's a personal AI career advisor."*
 
@@ -1378,7 +1461,7 @@ python -m pytest tests/test_webhook.py -v     # Jeremy: Discord delivery
 > **Q2: Do you have a sample LaTeX resume (.tex file) ready?** Sapna needs this to build and test the resume parser. If not, we should create a template.
 
 > [!IMPORTANT]
-> **Q3: Do you have a Discord server with webhook permissions set up?** Jeremy needs a webhook URL and bot token to test delivery.
+> **Q3: (RESOLVED â€” pivot) A Discord server is no longer required.** Delivery is a local FastAPI web dashboard. The optional Discord webhook bonus only needs `DISCORD_WEBHOOK_URL` in `.env` if Jeremy chooses to add it.
 
 > [!WARNING]
 > **Q4: Does the KP portal have any CAPTCHA or 2FA on login?** This significantly affects Aaron's implementation complexity. If there's a CAPTCHA, we may need to either solve it programmatically or use a session cookie approach.
@@ -1390,7 +1473,7 @@ python -m pytest tests/test_webhook.py -v     # Jeremy: Discord delivery
 > **Q6: Do you want to target specific job boards?** The plan uses Internshala + SimplyHired. If you prefer other boards (LinkedIn, Wellfound, Naukri), we can adjust Sapna's scrapers.
 
 > [!NOTE]
-> **Q7: WebCMD â€” can you confirm the exact tool/package name?** The research is ongoing. Is it a specific npm package, a standalone binary, or a Selenium-based tool? A link to its documentation would help Aaron significantly.
+> **Q7: (RESOLVED) WebCMD is confirmed:** the npm package `@agentrhq/webcmd` (verified installed v0.7.4 here). CLI corrections documented in HANDOFF §A2.3 NOTE.
 
 ---
 
@@ -1452,15 +1535,24 @@ GPA-gated filtering with competitive/balanced/portfolio modes.
 
 ### Delivery & Learning (Jeremy)
 
-#### [NEW] [discord_webhook.py](file:///c:/Users/cloud/OneDrive/Desktop/Hybrid_Second_Brain/03_Active_Projects/websites/atlas/delivery/discord_webhook.py)
-Rich embed builder + webhook sender.
+#### [NEW] [web/app.py](file:///c:/Users/cloud/OneDrive/Desktop/Hybrid_Second_Brain/03_Active_Projects/websites/atlas/web/app.py)
+FastAPI dashboard: GET /, GET /api/digest, POST /api/feedback.
 
-#### [NEW] [discord_bot.py](file:///c:/Users/cloud/OneDrive/Desktop/Hybrid_Second_Brain/03_Active_Projects/websites/atlas/delivery/discord_bot.py)
-Reaction listener bot for feedback loop.
+#### [NEW] [web/static/index.html](file:///c:/Users/cloud/OneDrive/Desktop/Hybrid_Second_Brain/03_Active_Projects/websites/atlas/web/static/index.html)
+Dashboard page — attendance risk cards, job cards with reaction buttons, housing.
 
-#### [NEW] [learning_engine.py](file:///c:/Users/cloud/OneDrive/Desktop/Hybrid_Second_Brain/03_Active_Projects/websites/atlas/delivery/learning_engine.py)
-Emoji â†’ weight update engine.
+#### [NEW] [web/static/app.js](file:///c:/Users/cloud/OneDrive/Desktop/Hybrid_Second_Brain/03_Active_Projects/websites/atlas/web/static/app.js)
+Fetches /api/digest, renders cards, POSTs feedback.
 
-#### [NEW] [database.py](file:///c:/Users/cloud/OneDrive/Desktop/Hybrid_Second_Brain/03_Active_Projects/websites/atlas/delivery/database.py)
+#### [NEW] [web/static/style.css](file:///c:/Users/cloud/OneDrive/Desktop/Hybrid_Second_Brain/03_Active_Projects/websites/atlas/web/static/style.css)
+Dashboard styles (SAFE/CAUTION/WARNING/DANGER color coding).
+
+#### [NEW] [delivery/learning_engine.py](file:///c:/Users/cloud/OneDrive/Desktop/Hybrid_Second_Brain/03_Active_Projects/websites/atlas/delivery/learning_engine.py)
+Emoji/button reaction â†’ weight update engine.
+
+#### [NEW] [delivery/database.py](file:///c:/Users/cloud/OneDrive/Desktop/Hybrid_Second_Brain/03_Active_Projects/websites/atlas/delivery/database.py)
 SQLite operations for preferences, reactions, history.
+
+#### [OPTIONAL] [delivery/notify_discord.py](file:///c:/Users/cloud/OneDrive/Desktop/Hybrid_Second_Brain/03_Active_Projects/websites/atlas/delivery/notify_discord.py)
+Bonus: one-shot webhook notifier, only fires if DISCORD_WEBHOOK_URL is set.
 

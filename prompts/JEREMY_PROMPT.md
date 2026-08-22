@@ -6,15 +6,17 @@
 
 ## PROMPT START — COPY FROM HERE
 
-I am Jeremy, working on the **Atlas** hackathon project. My role is **Integration Commander**. I own the `delivery/` directory AND the root-level orchestrator in the repo at: https://github.com/jeremygideonbareh/webcmd-hackathon-studenthub
+I am Jeremy, working on the **Atlas** hackathon project. My role is **Integration Commander**. I own the `web/` directory, the `delivery/` directory, AND the root-level orchestrator in the repo at: https://github.com/jeremygideonbareh/webcmd-hackathon-studenthub
+
+> **PIVOT (2026-08-22):** Delivery is now a **FastAPI web dashboard**, NOT Discord. The Discord webhook/bot are cancelled (see HANDOFF.md).
 
 I am responsible for:
 1. **Project scaffolding** — Setting up the entire project structure, config files, requirements.txt, .env.example, and mock data for the team
-2. **Discord Webhook Sender** — Rich embedded messages with color-coded attendance alerts, job listings, and housing results
-3. **Discord Bot** — Reaction listener using `on_raw_reaction_add` (NOT `on_reaction_add` — critical difference!)
-4. **Self-Learning Engine** — Maps emoji reactions to preference weight updates stored in SQLite
+2. **FastAPI Web Dashboard** — `web/app.py`: GET `/` (dashboard), GET `/api/digest` (reads `data/*.json`), POST `/api/feedback` (reaction buttons → learning engine)
+3. **Dashboard UI** — `web/static/`: single-page attendance risk cards (color-coded), job cards with 👍👎⭐🚫 buttons, housing listings
+4. **Self-Learning Engine** — Maps feedback reactions to preference weight updates stored in SQLite
 5. **SQLite Database** — Tracks reactions, preference weights, and digest history
-6. **Main Orchestrator** — The pipeline that ties Aaron's portal scraper + Sapna's intelligence layer + my Discord delivery together
+6. **Main Orchestrator** — The pipeline that ties Aaron's portal scraper + Sapna's intelligence layer + my web delivery together
 
 ### My Responsibilities in Detail
 
@@ -27,22 +29,22 @@ I need to create:
 - `config.yaml` (thresholds, URLs, scraper settings)
 - `data/mock/` directory with mock JSON files matching ALL contracts so Aaron and Sapna can test independently
 
-**2. Discord Webhook (Hours 2-3)**
-- Use `?wait=true` query param to get message ID back (needed for reaction tracking)
-- Handle `429` rate limits with `retry_after`
-- Max 10 embeds per message
-- Color-code by risk: SAFE=green(0x2ecc71), CAUTION=yellow(0xf39c12), WARNING=orange(0xe67e22), DANGER=red(0xe74c3c)
+**2. Web Dashboard (Hours 2-4)**
+- `web/app.py` — FastAPI app, serves `web/static/`, exposes `/api/digest` and `/api/feedback`
+- `/api/digest` reads `data/attendance.json`, `data/risk_report.json`, `data/gpa.json`, `data/filtered_jobs.json`, `data/housing_raw.json` fresh on each call (graceful empty-data fallback)
+- `/api/feedback` accepts `{item_type, item_id, reaction}` and calls `learning_engine.process_reaction()`
+- Color-code by risk: SAFE=green(#2ecc71), CAUTION=yellow(#f39c12), WARNING=orange(#e67e22), DANGER=red(#e74c3c)
 
-**3. Discord Bot (Hours 4-5)**
-- MUST use `on_raw_reaction_add(payload)` — NOT `on_reaction_add(reaction, user)`
-- `on_reaction_add` requires messages in bot cache — silently fails on uncached webhook messages!
-- Auto-react to webhook messages with 👍👎⭐🚫 as feedback buttons
-- Emoji mapping: 👍=boost 1.2x, 👎=suppress 0.8x, ⭐=favorite 1.5x, 🚫=block 0.3x
+**3. Dashboard UI (web/static/)**
+- Vanilla JS + CSS, no build step
+- Sections: attendance risk cards, matched jobs (with reaction buttons), housing listings
+- Reaction buttons POST to `/api/feedback`, show a subtle "learned ✓" state
 
 **4. Self-Learning Engine (Hours 5-6)**
 - Weights clamped to [0.1, 3.0] to prevent runaway amplification
 - On each pipeline run, load weights from SQLite → pass to Sapna's TF-IDF matcher
 - Categories extracted from job metadata (skills, source, type)
+- Reaction mapping: 👍=boost 1.2x, 👎=suppress 0.8x, ⭐=favorite 1.5x, 🚫=block 0.3x
 
 **5. SQLite Schema:**
 ```sql
@@ -77,10 +79,10 @@ CREATE TABLE digest_history (
 # 2. Call Aaron's portal scraper → attendance.json, risk_report.json, gpa.json
 # 3. Load preference weights from SQLite
 # 4. Call Sapna's intelligence → filtered_jobs.json, housing_raw.json
-# 5. Build digest payload
-# 6. Send via Discord webhook → get message_id
-# 7. Log digest to SQLite history
+# 5. Write digest data to data/*.json (dashboard reads it live)
+# 6. (Optional) notify_discord.py if DISCORD_WEBHOOK_URL set
 ```
+CLI modes: `python orchestrator.py --mock` (default, uses data/mock/), `--live` (real modules), `--live-demo` (real + demo flags).
 
 ### Input Contracts I Consume
 - `data/attendance.json` from Aaron
@@ -96,10 +98,16 @@ I implement the critical logic: if GPA drops between scrapes, I pass the new GPA
 ```
 delivery/
 ├── __init__.py
-├── discord_webhook.py       # Rich embed sender with ?wait=true
-├── discord_bot.py           # Reaction listener (on_raw_reaction_add)
-├── learning_engine.py       # Emoji → weight update engine
-└── database.py              # SQLite CRUD operations
+├── learning_engine.py       # Reaction → weight update engine
+├── database.py              # SQLite CRUD operations
+└── notify_discord.py        # OPTIONAL webhook bonus (DISCORD_WEBHOOK_URL)
+
+web/
+├── app.py                   # FastAPI dashboard
+└── static/
+    ├── index.html           # Dashboard page
+    ├── app.js               # fetch digest + POST feedback
+    └── style.css            # Risk color coding
 
 # Root level (also mine):
 orchestrator.py              # Main pipeline
@@ -112,8 +120,8 @@ requirements.txt             # All dependencies
 
 ### Python Dependencies I Need
 ```
-discord-webhook>=1.3.0
-discord.py>=2.3.0
+fastapi>=0.110.0
+uvicorn>=0.29.0
 python-dotenv>=1.0.0
 pyyaml>=6.0
 requests>=2.31.0
@@ -125,14 +133,13 @@ I work on branch `jeremy/delivery`. For scaffolding, I can push initial structur
 ### My Timeline
 - Hour 0: **SCAFFOLD EVERYTHING** — create project structure, config, requirements, .gitignore, .env.example
 - Hour 0-1: Create ALL mock data files so Aaron and Sapna can test independently
-- Hours 1-2: Set up SQLite schema, implement database.py
-- Hours 2-3: Implement Discord webhook sender with rich embeds
+- Hours 1-2: Set up SQLite schema, implement database.py + learning_engine.py
+- Hours 2-4: Implement FastAPI dashboard (web/app.py + static UI + /api/feedback)
 - Hours 3-4: Implement orchestrator skeleton (works with mock data)
-- Hours 4-5: Implement Discord bot with on_raw_reaction_add
-- Hours 5-6: Implement self-learning engine, wire to SQLite
-- Hours 6-7: Feed preference weights back into orchestrator pipeline
+- Hour 4: 🔗 **Checkpoint 2** — orchestrator --mock → dashboard shows digest live
+- Hours 4-6: Wire learning engine to SQLite + /api/feedback buttons
 - Hour 7: 🔗 MAJOR INTEGRATION — replace mock data with real modules from Aaron and Sapna
-- Hours 7-9: Wire real modules, implement GPA feedback loop, polish digest format
+- Hours 7-9: Wire real modules, implement GPA feedback loop, polish dashboard
 - Hours 9-10: Code freeze, demo prep
 
 Please start by scaffolding the entire project structure with all mock data files. This is the MOST CRITICAL first step because Aaron and Sapna depend on having mock data to test against.

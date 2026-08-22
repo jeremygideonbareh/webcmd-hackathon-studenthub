@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "skills": {
+    "discord-bot": {
+      "source": "claude-office-skills/skills",
+      "sourceType": "github",
+      "skillPath": "discord-bot/SKILL.md",
+      "computedHash": "692511fcf42a4939ab5aa0d08b2a3de81d230721c58ee85d4ab20ada1962cdef"
+    },
+    "machine-learning": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "machine-learning/SKILL.md",
+      "computedHash": "5683168b790d3402074da2555c27bd17dc5fde513c69c4d3a1f8ad2210fbc565"
+    },
+    "pytest": {
+      "source": "gentleman-programming/gentleman-skills",
+      "sourceType": "github",
+      "skillPath": "curated/pytest/SKILL.md",
+      "computedHash": "4cd96fbbfbc20b0f17ed611707a4721712f8bd78496fc1db7db4d5b92531b479"
+    },
+    "scikit-learn": {
+      "source": "eyadsibai/ltk",
+      "sourceType": "github",
+      "skillPath": "plugins/ltk-data/skills/scikit-learn/SKILL.md",
+      "computedHash": "a03e5536fb2fec5458370600b29c227c46fea494da3c259ce7ec7a893edc3959"
+    },
+    "web-scraping-python": {
+      "source": "zlstas/skills",
+      "sourceType": "github",
+      "skillPath": "skills/web-scraping-python/SKILL.md",
+      "computedHash": "ccbf2844c9d4aa1fc8db22cb03ea97b414ab9feadcd9c3e2bce2d08196852ad4"
+    }
+  }
+}
