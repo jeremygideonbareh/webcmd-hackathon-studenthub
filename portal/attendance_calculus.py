@@ -1,5 +1,5 @@
 """
-Attendance Calculus Engine for Atlas Portal Subsystem.
+Attendance Calculus Engine for Knowledge Pro Student Portal.
 
 Given P (present), T (total), and threshold theta (default 85% / 0.85):
 
