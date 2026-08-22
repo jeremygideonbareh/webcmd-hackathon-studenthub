@@ -23,14 +23,29 @@ export function ScholarshipsTab({
   const [stream, setStream] = React.useState<StreamType | "All">("All");
 
   React.useEffect(() => {
-    if (initialScholarships.length > 0 && stream === "All") {
-      setScholarships(initialScholarships);
-      return;
-    }
     const filterStream = stream === "All" ? undefined : stream;
     fetchScholarships(7.5, filterStream)
-      .then((data) => setScholarships(data))
-      .catch((err) => console.error("Error loading scholarships:", err));
+      .then((data) => {
+        if (data && data.length > 0) {
+          setScholarships(data);
+        } else if (initialScholarships.length > 0) {
+          if (stream === "All") {
+            setScholarships(initialScholarships);
+          } else {
+            setScholarships(initialScholarships.filter((s) => s.streams.includes(stream as StreamType)));
+          }
+        }
+      })
+      .catch((err) => {
+        console.error("Error loading scholarships:", err);
+        if (initialScholarships.length > 0) {
+          if (stream === "All") {
+            setScholarships(initialScholarships);
+          } else {
+            setScholarships(initialScholarships.filter((s) => s.streams.includes(stream as StreamType)));
+          }
+        }
+      });
   }, [stream, initialScholarships]);
 
   return (

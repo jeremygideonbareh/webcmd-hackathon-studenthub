@@ -21,13 +21,15 @@ export function DiscountsTab({
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    if (initialDiscounts.length > 0) {
-      setDiscounts(initialDiscounts);
-    } else {
-      fetchDiscounts()
-        .then((data) => setDiscounts(data))
-        .catch((err) => console.error("Error loading discounts:", err));
-    }
+    fetchDiscounts()
+      .then((data) => {
+        if (data && data.length > 0) setDiscounts(data);
+        else if (initialDiscounts.length > 0) setDiscounts(initialDiscounts);
+      })
+      .catch((err) => {
+        console.error("Error loading discounts:", err);
+        if (initialDiscounts.length > 0) setDiscounts(initialDiscounts);
+      });
   }, [initialDiscounts]);
 
   const handleCopyCode = (id: string, code?: string) => {

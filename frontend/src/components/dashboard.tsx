@@ -196,11 +196,11 @@ export function Dashboard() {
       </div>
 
       <div id="scholarships" className="scroll-mt-20">
-        <ScholarshipsTab />
+        <ScholarshipsTab initialScholarships={digest.scholarships || []} />
       </div>
 
       <div id="discounts" className="scroll-mt-20">
-        <DiscountsTab />
+        <DiscountsTab initialDiscounts={digest.discounts || []} />
       </div>
 
       <div id="housing" className="scroll-mt-20">
