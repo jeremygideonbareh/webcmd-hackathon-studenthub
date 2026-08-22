@@ -9,9 +9,9 @@
       "classes_present": 42,
       "classes_total": 52,
       "classes_can_skip": 0,
-      "classes_must_attend": 3,
-      "projection": "Must attend next 3 consecutive classes to reach 85%",
-      "risk_level": "HIGH"
+      "classes_must_attend": 15,
+      "projection": "You're at 80.77%. Must attend next 15 classes to hit 85%.",
+      "risk_level": "WARNING"
     },
     {
       "code": "CS2004",
@@ -19,9 +19,9 @@
       "current_pct": 96.0,
       "classes_present": 48,
       "classes_total": 50,
-      "classes_can_skip": 5,
+      "classes_can_skip": 6,
       "classes_must_attend": 0,
-      "projection": "You're at 96.0%. You can safely skip 5 more classes.",
+      "projection": "You're at 96%. You can safely skip 6 more classes.",
       "risk_level": "SAFE"
     },
     {
@@ -31,8 +31,8 @@
       "classes_present": 38,
       "classes_total": 50,
       "classes_can_skip": 0,
-      "classes_must_attend": 9,
-      "projection": "Must attend next 9 consecutive classes to reach 85%",
+      "classes_must_attend": 30,
+      "projection": "DANGER: 76%. Must attend 30 consecutive classes immediately!",
       "risk_level": "DANGER"
     },
     {
@@ -41,10 +41,10 @@
       "current_pct": 90.0,
       "classes_present": 45,
       "classes_total": 50,
-      "classes_can_skip": 3,
+      "classes_can_skip": 2,
       "classes_must_attend": 0,
-      "projection": "You're at 90.0%. You can skip 3 class(es) but be careful.",
-      "risk_level": "CAUTION"
+      "projection": "You're at 90%. You can safely skip 2 more classes.",
+      "risk_level": "SAFE"
     }
   ]
 }
