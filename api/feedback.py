@@ -30,7 +30,7 @@ def _request(method, path, payload=None):
             "Authorization": f"Bearer {SERVICE_KEY}",
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "Prefer": "return=representation",
+            "Prefer": "return=representation,resolution=merge-duplicates",
         },
     )
     try:

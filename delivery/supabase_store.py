@@ -42,7 +42,7 @@ class SupabaseStore:
                 "Authorization": f"Bearer {self.key}",
                 "Accept": "application/json",
                 "Content-Type": "application/json",
-                "Prefer": "return=representation",
+                "Prefer": "return=representation,resolution=merge-duplicates",
             },
         )
         try:
