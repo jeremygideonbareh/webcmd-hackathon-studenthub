@@ -1,64 +1,7 @@
 import * as React from "react";
-import {
-  Award,
-  Book,
-  BookOpen,
-  Briefcase,
-  Calculator,
-  ChevronDown,
-  GraduationCap,
-  Home,
-  Percent,
-  Sparkles,
-  X,
-} from "lucide-react";
-
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
 import { SterlingGateKineticNavigation } from "@/components/ui/sterling-gate-kinetic-navigation";
-import { useAuth } from "@/context/auth-context";
-import { cn } from "@/lib/utils";
-
-const NAV = [
-  { href: "#home", label: "Overview", icon: Home },
-  { href: "#advisor", label: "AI Skill Advisor", icon: Sparkles },
-  { href: "#jobs", label: "Internships", icon: Briefcase },
-  { href: "#scholarships", label: "Scholarships", icon: Award },
-  { href: "#discounts", label: "Student Deals", icon: Percent },
-  { href: "#housing", label: "Housing", icon: Home },
-  { href: "#attendance", label: "Attendance Risk (KP Portal)", icon: GraduationCap },
-  { href: "#simulator", label: "Class Simulator (KP Portal)", icon: Calculator },
-];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  // Sidebar CLOSED by default as requested
-  const [sidebarOpen, setSidebarOpen] = React.useState(false);
-  const { user, isLevel2Authenticated } = useAuth();
-
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && sidebarOpen) {
-        setSidebarOpen(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [sidebarOpen]);
-
   return (
     <div className="min-h-screen bg-background relative pb-12">
       <a
@@ -68,151 +11,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         Skip to main content
       </a>
 
-      {/* Sterling Gate Kinetic Navigation Header */}
+      {/* Fullscreen Sterling Gate Kinetic Navigation Header & Menu */}
       <SterlingGateKineticNavigation />
-
-      {/* Toggle Floating Sidebar Button (Book Icon — Closed Book when closed, Open Book when open) */}
-      <button
-        onClick={() => setSidebarOpen((prev) => !prev)}
-        className="fixed top-20 left-4 z-40 flex items-center gap-2 rounded-full border bg-card/90 px-3.5 py-2 shadow-lg backdrop-blur hover:bg-accent transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        aria-label={sidebarOpen ? "Close navigation menu" : "Open navigation menu"}
-      >
-        {sidebarOpen ? (
-          <>
-            <BookOpen className="h-5 w-5 text-primary" aria-hidden="true" />
-            <span className="text-xs font-semibold">Close Menu</span>
-          </>
-        ) : (
-          <>
-            <Book className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-            <span className="text-xs font-semibold">Open Menu</span>
-          </>
-        )}
-      </button>
-
-      {/* Sidebar Drawer — Closed by default */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Navigation drawer"
-        >
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-            onClick={() => setSidebarOpen(false)}
-            aria-hidden="true"
-          />
-          <aside className="absolute inset-y-0 left-0 flex w-72 flex-col border-r bg-card pb-[env(safe-area-inset-bottom)] shadow-2xl z-50">
-            <div className="flex items-center justify-between p-4">
-              <Brand isOpen={sidebarOpen} onClick={() => setSidebarOpen(false)} />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSidebarOpen(false)}
-                aria-label="Close navigation menu"
-                className="h-11 w-11 rounded-lg"
-              >
-                <X className="h-5 w-5" aria-hidden="true" />
-              </Button>
-            </div>
-            <Separator />
-            <SidebarContent onNavigate={() => setSidebarOpen(false)} userEmail={user?.email} isLevel2={isLevel2Authenticated} />
-          </aside>
-        </div>
-      )}
 
       {/* Main Content Viewport */}
       <main id="main-content" className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         {children}
       </main>
     </div>
-  );
-}
-
-function Brand({ isOpen, onClick }: { isOpen: boolean; onClick?: () => void }) {
-  return (
-    <button onClick={onClick} className="flex items-center gap-2.5 text-left focus-visible:outline-none">
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-        {isOpen ? (
-          <BookOpen className="h-5 w-5" aria-hidden="true" />
-        ) : (
-          <Book className="h-5 w-5" aria-hidden="true" />
-        )}
-      </div>
-      <span className="text-xl font-bold tracking-tight">Atlas</span>
-    </button>
-  );
-}
-
-function SidebarContent({ onNavigate, userEmail, isLevel2 }: { onNavigate?: () => void; userEmail?: string; isLevel2?: boolean }) {
-  return (
-    <>
-      <nav aria-label="Main Navigation" className="flex-1 space-y-1 p-2 overflow-y-auto">
-        {NAV.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            onClick={onNavigate}
-            className={cn(
-              "flex min-h-[44px] items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            )}
-          >
-            <item.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-            {item.label}
-          </a>
-        ))}
-      </nav>
-      <Separator />
-      <div className="p-4">
-        <ProfileMenu userEmail={userEmail} isLevel2={isLevel2} />
-      </div>
-    </>
-  );
-}
-
-function ProfileMenu({ userEmail, isLevel2 }: { userEmail?: string; isLevel2?: boolean }) {
-  return (
-    <Collapsible>
-      <CollapsibleTrigger asChild>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="min-h-[44px] w-full justify-start gap-2 px-2 focus-visible:ring-2 focus-visible:ring-ring"
-              aria-label="Student account menu"
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary/10 text-primary font-semibold">ST</AvatarFallback>
-              </Avatar>
-              <span className="flex-1 text-left text-xs font-medium truncate">
-                {userEmail || "Student Portal"}
-              </span>
-              <ChevronDown className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile & Stream</DropdownMenuItem>
-            <DropdownMenuItem>KP Portal Status: {isLevel2 ? "Connected" : "Disconnected"}</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-1 px-2 pt-1">
-        <a
-          href="#attendance"
-          className="flex min-h-[36px] items-center rounded-md px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
-        >
-          Attendance Risk report
-        </a>
-        <a
-          href="#advisor"
-          className="flex min-h-[36px] items-center rounded-md px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
-        >
-          Skill recommendations
-        </a>
-      </CollapsibleContent>
-    </Collapsible>
   );
 }
