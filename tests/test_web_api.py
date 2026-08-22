@@ -82,6 +82,7 @@ def test_digest_returns_empty_on_missing_data(tmp_path, monkeypatch):
     import web.app as app_mod
 
     monkeypatch.setattr(app_mod, "DATA_DIR", empty)
+    monkeypatch.setattr(app_mod, "MOCK_DIR", empty)
     r = client.get("/api/digest")
     assert r.status_code == 200
     body = r.json()

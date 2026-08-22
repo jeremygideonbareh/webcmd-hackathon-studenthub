@@ -1,6 +1,6 @@
 """
 Intelligence package — unifying resume parsing, TF-IDF matching,
-job scrapers (Internshala), and housing scrapers (NoBroker).
+job scrapers, housing scrapers, scholarships, discounts, and AI resume skills advisor.
 """
 
 from __future__ import annotations
@@ -8,7 +8,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-# Add project root to sys.path so intel/ modules can be imported smoothly
+# Add project root to sys.path
 ROOT = Path(__file__).resolve().parent.parent
 INTEL_DIR = ROOT / "intel"
 if str(INTEL_DIR) not in sys.path:
@@ -23,6 +23,10 @@ except ImportError as e:
     match_resume_to_postings = None
     fetch_internships = None
     fetch_housing_mock = None
+
+from intelligence.advisor import analyze_resume_skills
+from intelligence.scholarships import get_scholarships
+from intelligence.discounts import get_discounts
 
 
 def get_matched_jobs(resume_data: dict | None = None, category: str = "python-internship", top_n: int = 5) -> dict:
@@ -83,3 +87,12 @@ def get_housing(locality: str = "Koramangala", city: str = "Bangalore", budget_m
     except Exception as err:
         print(f"[intelligence] Error fetching housing: {err}")
         return {"listings": []}
+
+
+__all__ = [
+    "get_matched_jobs",
+    "get_housing",
+    "analyze_resume_skills",
+    "get_scholarships",
+    "get_discounts",
+]

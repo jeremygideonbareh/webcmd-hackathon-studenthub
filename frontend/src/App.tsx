@@ -2,10 +2,10 @@ import * as React from "react";
 import { AppShell } from "@/components/app-shell";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { Hero } from "@/components/hero";
+import { HowItWorks } from "@/components/how-it-works";
 import { Reveal } from "@/components/reveal";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Code splitting / Lazy loading heavy section components
 const Dashboard = React.lazy(() =>
   import("@/components/dashboard").then((m) => ({ default: m.Dashboard }))
 );
@@ -27,9 +27,13 @@ export default function App() {
     <AppShell>
       <Hero />
 
+      <Reveal>
+        <HowItWorks />
+      </Reveal>
+
       <ErrorBoundary fallbackMessage="Failed to load dashboard metrics.">
         <React.Suspense fallback={<SectionFallback />}>
-          <Reveal>
+          <Reveal delay={0.1}>
             <Dashboard />
           </Reveal>
         </React.Suspense>

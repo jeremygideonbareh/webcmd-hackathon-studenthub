@@ -1,0 +1,59 @@
+{
+  "scholarships": [
+    {
+      "id": "sch_01",
+      "title": "National Engineering Excellence Grant 2026",
+      "provider": "Ministry of Education",
+      "amount": "₹1,00,000 / year",
+      "min_gpa": 8.0,
+      "streams": ["Engineering", "Data Science"],
+      "deadline": "2026-10-15",
+      "description": "Merit-based financial aid for high-performing engineering students undertaking innovative hardware/software projects.",
+      "url": "https://scholarships.gov.in"
+    },
+    {
+      "id": "sch_02",
+      "title": "Cognitive Sciences & Psychology Research Fellowship",
+      "provider": "Indian Council of Social Science Research",
+      "amount": "₹75,000 / year",
+      "min_gpa": 7.5,
+      "streams": ["Psychology", "Behavioral Science"],
+      "deadline": "2026-11-01",
+      "description": "Fellowship support for undergraduate & postgraduate psychology students conducting empirical research in mental health or cognitive modeling.",
+      "url": "https://icssr.org"
+    },
+    {
+      "id": "sch_03",
+      "title": "Future Business Leaders & BBA Merit Award",
+      "provider": "Global Commerce Foundation",
+      "amount": "₹85,000 / year",
+      "min_gpa": 8.2,
+      "streams": ["BBA", "Commerce"],
+      "deadline": "2026-09-30",
+      "description": "Scholarship awarded to BBA students demonstrating exceptional financial modeling, marketing innovation, or startup initiative.",
+      "url": "https://globalcommerce.org/merit"
+    },
+    {
+      "id": "sch_04",
+      "title": "Executive MBA Leadership & Strategy Grant",
+      "provider": "Corporate Analytics Alliance",
+      "amount": "₹1,50,000 / year",
+      "min_gpa": 8.5,
+      "streams": ["MBA", "Management"],
+      "deadline": "2026-10-30",
+      "description": "Postgraduate grant for MBA scholars focusing on strategic consulting, data-driven management, or FinTech innovation.",
+      "url": "https://analyticsalliance.org/mba-grant"
+    },
+    {
+      "id": "sch_05",
+      "title": "Women in STEM & Technology Leadership Scholarship",
+      "provider": "Tech Diversity Foundation",
+      "amount": "₹1,20,000 / year",
+      "min_gpa": 7.8,
+      "streams": ["Engineering", "Psychology", "BBA", "MBA"],
+      "deadline": "2026-12-15",
+      "description": "Empowering women scholars across STEM, Management, and Humanities to pursue high-impact technical and managerial careers.",
+      "url": "https://techdiversity.org/women-in-stem"
+    }
+  ]
+}

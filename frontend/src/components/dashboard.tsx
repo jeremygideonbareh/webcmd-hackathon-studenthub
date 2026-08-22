@@ -20,6 +20,11 @@ import {
   RefreshCw,
 } from "lucide-react";
 
+import { AdvisorTab } from "@/components/advisor-tab";
+import { AttendanceSimulator } from "@/components/attendance-simulator";
+import { DiscountsTab } from "@/components/discounts-tab";
+import { ScholarshipsTab } from "@/components/scholarships-tab";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -114,9 +119,9 @@ export function Dashboard() {
       {/* Top Header Controls */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Student Overview</h2>
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Student Operating Dashboard</h2>
           <p className="text-sm text-muted-foreground">
-            Live metrics & personalized recommendations
+            Portal analytics, AI career advisory, scholarships & student deals
           </p>
         </div>
         <Button
@@ -133,7 +138,13 @@ export function Dashboard() {
       </div>
 
       <GpaStrip gpa={digest.gpa} />
+
       <AttendanceSection subjects={digest.attendance || []} />
+
+      <AttendanceSimulator subjects={digest.attendance || []} />
+
+      <AdvisorTab />
+
       <JobsSection
         jobs={digest.jobs || []}
         onFeedback={async (id, reaction) => {
@@ -143,6 +154,11 @@ export function Dashboard() {
           );
         }}
       />
+
+      <ScholarshipsTab initialScholarships={digest.scholarships || []} />
+
+      <DiscountsTab initialDiscounts={digest.discounts || []} />
+
       <HousingSection listings={digest.housing || []} />
     </div>
   );

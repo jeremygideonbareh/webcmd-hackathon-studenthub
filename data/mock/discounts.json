@@ -1,0 +1,70 @@
+{
+  "discounts": [
+    {
+      "id": "disc_01",
+      "title": "GitHub Student Developer Pack",
+      "provider": "GitHub",
+      "category": "Developer Tools",
+      "discount": "100% FREE ($200+ Value)",
+      "description": "Free access to GitHub Copilot, Namecheap domain, DigitalOcean cloud credits, JetBrains IDEs, and Canva Pro.",
+      "streams": ["Engineering", "Data Science", "BBA", "MBA"],
+      "code": "STUDENT-EDU-VERIFY",
+      "url": "https://education.github.com/pack"
+    },
+    {
+      "id": "disc_02",
+      "title": "Notion Education Plus Plan",
+      "provider": "Notion",
+      "category": "Productivity",
+      "discount": "100% FREE",
+      "description": "Unlimited blocks, page history, and collaborative workspace for student notes, case studies, and team projects.",
+      "streams": ["Engineering", "Psychology", "BBA", "MBA"],
+      "code": "AUTO-EDU-LOGIN",
+      "url": "https://www.notion.so/product/notion-for-education"
+    },
+    {
+      "id": "disc_03",
+      "title": "SPSS & Qualtrics Psychology Student License",
+      "provider": "IBM / Qualtrics",
+      "category": "Research & Analytics",
+      "discount": "80% OFF",
+      "description": "Discounted access to IBM SPSS Statistics and Qualtrics survey research tools for behavioral and clinical research.",
+      "streams": ["Psychology", "MBA"],
+      "code": "PSYCH-RESEARCH-80",
+      "url": "https://www.ibm.com/analytics/spss-statistics"
+    },
+    {
+      "id": "disc_04",
+      "title": "JetBrains All Products Pack",
+      "provider": "JetBrains",
+      "category": "Developer Tools",
+      "discount": "100% FREE",
+      "description": "Free professional licenses for PyCharm, IntelliJ IDEA, WebStorm, and CLion with valid university email.",
+      "streams": ["Engineering"],
+      "code": "EDU-JETBRAINS-FREE",
+      "url": "https://www.jetbrains.com/community/education/#students"
+    },
+    {
+      "id": "disc_05",
+      "title": "Bloomberg Terminals & Wall Street Prep Student Discount",
+      "provider": "Wall Street Prep",
+      "category": "Finance & Business",
+      "discount": "50% OFF",
+      "description": "Comprehensive financial modeling, DCF valuation, and Excel financial analysis courses for BBA/MBA students.",
+      "streams": ["BBA", "MBA"],
+      "code": "FINANCE-STUDENT-50",
+      "url": "https://www.wallstreetprep.com"
+    },
+    {
+      "id": "disc_06",
+      "title": "Spotify Premium + Hulu Student Bundle",
+      "provider": "Spotify",
+      "category": "Subscriptions",
+      "discount": "50% OFF (₹59/month)",
+      "description": "Discounted ad-free music streaming and entertainment package for verified university students.",
+      "streams": ["Engineering", "Psychology", "BBA", "MBA"],
+      "code": "SPOTIFY-STUDENT-SHEERID",
+      "url": "https://www.spotify.com/student"
+    }
+  ]
+}

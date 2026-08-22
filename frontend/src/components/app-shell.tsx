@@ -1,11 +1,14 @@
 import * as React from "react";
 import {
+  Award,
   BookOpen,
   Briefcase,
+  Calculator,
   ChevronDown,
   GraduationCap,
   Home,
   Menu,
+  Percent,
   Sparkles,
   X,
 } from "lucide-react";
@@ -30,16 +33,18 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "#home", label: "Overview", icon: Home },
-  { href: "#attendance", label: "Attendance", icon: GraduationCap },
+  { href: "#attendance", label: "Attendance Risk", icon: GraduationCap },
+  { href: "#simulator", label: "Class Simulator", icon: Calculator },
+  { href: "#advisor", label: "AI Skill Advisor", icon: Sparkles },
   { href: "#jobs", label: "Internships", icon: Briefcase },
+  { href: "#scholarships", label: "Scholarships", icon: Award },
+  { href: "#discounts", label: "Student Deals", icon: Percent },
   { href: "#housing", label: "Housing", icon: Home },
-  { href: "#services", label: "Services", icon: Sparkles },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = React.useState(false);
 
-  // Close sidebar on Escape key
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && open) {
@@ -52,7 +57,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Accessibility: Skip to content */}
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
@@ -139,7 +143,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <Brand />
       </div>
       <Separator />
-      <nav aria-label="Main Navigation" className="flex-1 space-y-1 p-2">
+      <nav aria-label="Main Navigation" className="flex-1 space-y-1 p-2 overflow-y-auto">
         {NAV.map((item) => (
           <a
             key={item.href}
@@ -177,7 +181,7 @@ function ProfileMenu() {
                 <AvatarFallback className="bg-primary/10 text-primary font-semibold">ST</AvatarFallback>
               </Avatar>
               <span className="flex-1 text-left text-sm font-medium">
-                Student
+                Student Portal
               </span>
               <ChevronDown className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             </Button>
@@ -185,9 +189,9 @@ function ProfileMenu() {
           <DropdownMenuContent align="start" className="w-56">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
+            <DropdownMenuItem>Profile & Stream</DropdownMenuItem>
             <DropdownMenuItem>Preferences</DropdownMenuItem>
-            <DropdownMenuItem>Sign out</DropdownMenuItem>
+            <DropdownMenuItem>Portal Credentials</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </CollapsibleTrigger>
@@ -199,10 +203,10 @@ function ProfileMenu() {
           Risk report
         </a>
         <a
-          href="#jobs"
+          href="#advisor"
           className="flex min-h-[36px] items-center rounded-md px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
         >
-          Saved internships
+          Skill recommendations
         </a>
       </CollapsibleContent>
     </Collapsible>

@@ -45,27 +45,21 @@ def calculate_subject_risk(
             "projection": "No classes held yet. Attendance is currently at 100.0%."
         }
 
-    # Clamp present between 0 and total to prevent invalid data corrupting calculations
     present = max(0, min(present, total))
     pct = (present / total) * 100.0
     pct_rounded = round(pct, 2)
-
-    # Threshold as percentage
     threshold_pct = threshold * 100.0
 
     if pct >= threshold_pct:
-        # Solving for k (classes skipped in future): (P) / (T + k) >= theta => k <= (P - theta*T) / theta
         can_skip = math.floor((present - threshold * total) / threshold) if threshold > 0 else 0
         must_attend = 0
     else:
-        # Solving for m (classes attended in future): (P + m) / (T + m) >= theta => m >= (theta*T - P) / (1 - theta)
         can_skip = 0
         if threshold < 1.0:
             must_attend = math.ceil((threshold * total - present) / (1.0 - threshold))
         else:
-            must_attend = 999  # Impossible to reach 100% if any class was missed
+            must_attend = 999
 
-    # Determine risk band
     if pct >= 90.0:
         risk_level = "SAFE"
     elif pct >= 85.0:
@@ -97,6 +91,22 @@ def calculate_subject_risk(
     }
 
 
+def simulate_attendance(
+    present: int,
+    total: int,
+    future_attend: int = 0,
+    future_miss: int = 0,
+    threshold: float = 0.85
+) -> Dict[str, Any]:
+    """Simulate projected attendance percentage after future attended & missed classes."""
+    new_present = max(0, present + max(0, future_attend))
+    new_total = max(1, total + max(0, future_attend) + max(0, future_miss))
+    res = calculate_subject_risk(new_present, new_total, threshold=threshold)
+    res["future_attend"] = future_attend
+    res["future_miss"] = future_miss
+    return res
+
+
 def _build_projection_message(
     risk_level: str,
     pct: float,
@@ -116,7 +126,7 @@ def _build_projection_message(
         return f"You're at {pct}%. You can skip {can_skip} class{'es' if can_skip != 1 else ''} but proceed with caution."
     elif risk_level == "WARNING":
         return f"⚠️ Warning: You're at {pct}%. Must attend next {must_attend} consecutive class{'es' if must_attend != 1 else ''} to reach {target}%."
-    else:  # DANGER
+    else:
         return f"🚨 DANGER: Attendance is critically low at {pct}%. Must attend next {must_attend} consecutive class{'es' if must_attend != 1 else ''} immediately!"
 
 
@@ -124,16 +134,7 @@ def generate_risk_report(
     attendance_data: Dict[str, Any],
     threshold: float = 0.85
 ) -> Dict[str, Any]:
-    """
-    Generate risk_report.json schema compliant payload from attendance data.
-
-    Args:
-        attendance_data: Dictionary following attendance.json contract
-        threshold: Minimum attendance threshold (default 0.85 = 85.0%)
-
-    Returns:
-        Structured risk_report dictionary matching shared contract
-    """
+    """Generate risk_report.json schema compliant payload from attendance data."""
     subjects_input = attendance_data.get("subjects", [])
     evaluated_subjects = []
 
@@ -154,7 +155,6 @@ def generate_risk_report(
             "risk_level": metrics["risk_level"]
         })
 
-    # Sort so most critical subjects (highest must_attend / lowest pct) are listed first
     evaluated_subjects.sort(key=lambda s: (s["current_pct"], -s["classes_must_attend"]))
 
     return {
