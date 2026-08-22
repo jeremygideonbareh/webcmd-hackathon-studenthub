@@ -11,6 +11,8 @@ Endpoints:
     GET  /api/discounts        → [discounts]
     GET  /api/deadlines        → [academic_deadlines]
     POST /api/attendance/simulate → {present, total, future_attend, future_miss} → projected attendance
+    POST /api/auth/session     → save user session profile
+    GET  /api/auth/session      → get current active user session profile
 """
 
 from __future__ import annotations
@@ -73,6 +75,7 @@ def digest() -> dict:
     discounts_raw = _load("discounts.json")
     deadlines_raw = _load("deadlines.json")
     db = _get_db()
+    session = db.get_user_session()
 
     subjects_by_code = {
         s.get("code"): s.get("name")
@@ -92,6 +95,7 @@ def digest() -> dict:
         "discounts": discounts_raw.get("discounts", []) if isinstance(discounts_raw, dict) else [],
         "deadlines": deadlines_raw.get("deadlines", []) if isinstance(deadlines_raw, dict) else [],
         "gpa": gpa if isinstance(gpa, dict) else {},
+        "user_session": session or {},
         "weights": db.get_all_weights(),
     }
 
@@ -108,6 +112,26 @@ async def feedback(request: Request) -> JSONResponse:
         reaction=str(body.get("reaction", "")),
     )
     return JSONResponse({"ok": True, "weights": db.get_all_weights()})
+
+
+@app.post("/api/auth/session")
+async def save_session(request: Request) -> JSONResponse:
+    body = await request.json()
+    email = body.get("email", "student@christuniversity.in")
+    university = body.get("university", "Christ University (Knowledge Pro)")
+    student_id = body.get("student_id", "")
+    stream = body.get("stream", "Engineering")
+
+    db = _get_db()
+    saved = db.save_user_session(email=email, university=university, student_id=student_id, stream=stream)
+    return JSONResponse({"ok": True, "session": saved})
+
+
+@app.get("/api/auth/session")
+def get_session(email: str | None = None) -> JSONResponse:
+    db = _get_db()
+    sess = db.get_user_session(email=email)
+    return JSONResponse({"session": sess or {}})
 
 
 @app.post("/api/advisor/analyze")

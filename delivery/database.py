@@ -1,5 +1,5 @@
 """
-SQLite ledger for Atlas — reactions, preference weights, digest history.
+SQLite ledger for Atlas — reactions, preference weights, digest history, user sessions.
 
 Usage:
     from delivery.database import Database
@@ -37,11 +37,20 @@ CREATE TABLE IF NOT EXISTS digest_history (
     payload_json TEXT NOT NULL,
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS users (
+    email TEXT PRIMARY KEY,
+    university TEXT,
+    student_id TEXT,
+    stream TEXT DEFAULT 'Engineering',
+    is_verified INTEGER DEFAULT 1,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 """
 
 
 class Database:
-    """SQLite CRUD wrapper for the Atlas preference ledger."""
+    """SQLite CRUD wrapper for the Atlas preference ledger & user sessions."""
 
     def __init__(self, db_path: str | Path = "atlas.db"):
         self.db_path = str(db_path)
@@ -49,6 +58,32 @@ class Database:
         self._conn.row_factory = sqlite3.Row
         self._conn.executescript(SCHEMA)
         self._conn.commit()
+
+    # --- user sessions ---
+
+    def save_user_session(self, email: str, university: str = "", student_id: str = "", stream: str = "Engineering") -> dict:
+        self._conn.execute(
+            """
+            INSERT INTO users (email, university, student_id, stream, is_verified, updated_at)
+            VALUES (?, ?, ?, ?, 1, CURRENT_TIMESTAMP)
+            ON CONFLICT(email) DO UPDATE SET
+                university = excluded.university,
+                student_id = excluded.student_id,
+                stream = excluded.stream,
+                is_verified = 1,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (email, university, student_id, stream),
+        )
+        self._conn.commit()
+        return self.get_user_session(email) or {}
+
+    def get_user_session(self, email: str | None = None) -> dict | None:
+        if email:
+            row = self._conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+        else:
+            row = self._conn.execute("SELECT * FROM users ORDER BY updated_at DESC LIMIT 1").fetchone()
+        return dict(row) if row else None
 
     # --- reactions ---
 

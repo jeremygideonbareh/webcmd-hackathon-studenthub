@@ -1,12 +1,34 @@
 import * as React from "react";
-import { KeyRound, ShieldCheck, Sparkles } from "lucide-react";
+import { KeyRound, ShieldCheck, Sparkles, UserCheck } from "lucide-react";
 import { WorkPageHero } from "@/components/ui/work-page-hero";
 import { Button } from "@/components/ui/button";
 import { StudentAuthModal } from "@/components/student-auth-modal";
 
 export function Hero() {
   const [authOpen, setAuthOpen] = React.useState(false);
-  const [studentInfo, setStudentInfo] = React.useState<{ email: string; university: string } | null>(null);
+  const [studentInfo, setStudentInfo] = React.useState<{ email: string; university: string } | null>(() => {
+    try {
+      const saved = localStorage.getItem("atlas_user_session");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  React.useEffect(() => {
+    if (!studentInfo) {
+      fetch("/api/auth/session")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.session?.email) {
+            const sess = { email: data.session.email, university: data.session.university };
+            setStudentInfo(sess);
+            localStorage.setItem("atlas_user_session", JSON.stringify(sess));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [studentInfo]);
 
   return (
     <div className="relative">
@@ -47,8 +69,17 @@ export function Hero() {
             onClick={() => setAuthOpen(true)}
             className="gap-2 font-semibold text-sm shadow-md"
           >
-            <KeyRound className="h-4 w-4" aria-hidden="true" />
-            {studentInfo ? `Connected: ${studentInfo.email}` : "Login to Student Portal"}
+            {studentInfo ? (
+              <>
+                <UserCheck className="h-4 w-4 text-green-400" aria-hidden="true" />
+                Verified: {studentInfo.email}
+              </>
+            ) : (
+              <>
+                <KeyRound className="h-4 w-4" aria-hidden="true" />
+                Login to Student Portal
+              </>
+            )}
           </Button>
 
           <a href="#how-it-works">
@@ -64,7 +95,14 @@ export function Hero() {
         isOpen={authOpen}
         onClose={() => setAuthOpen(false)}
         onSuccess={(email, university) => {
-          setStudentInfo({ email, university });
+          const sess = { email, university };
+          setStudentInfo(sess);
+          localStorage.setItem("atlas_user_session", JSON.stringify(sess));
+          fetch("/api/auth/session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(sess),
+          }).catch(() => {});
         }}
       />
     </div>
