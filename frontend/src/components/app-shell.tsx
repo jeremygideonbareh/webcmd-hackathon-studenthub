@@ -1,13 +1,13 @@
 import * as React from "react";
 import {
   Award,
+  Book,
   BookOpen,
   Briefcase,
   Calculator,
   ChevronDown,
   GraduationCap,
   Home,
-  Menu,
   Percent,
   Sparkles,
   X,
@@ -29,6 +29,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
+import MacOSDock from "@/components/ui/mac-os-dock";
+import { SterlingGateKineticNavigation } from "@/components/ui/sterling-gate-kinetic-navigation";
+import { useAuth } from "@/context/auth-context";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -42,21 +45,68 @@ const NAV = [
   { href: "#housing", label: "Housing", icon: Home },
 ];
 
+const DOCK_APPS = [
+  {
+    id: "attendance",
+    name: "Attendance Risk & Calculator",
+    icon: "https://cdn.jim-nielsen.com/macos/1024/calculator-2021-04-29.png?rf=1024",
+  },
+  {
+    id: "advisor",
+    name: "AI Skill & Resume Advisor",
+    icon: "https://cdn.jim-nielsen.com/macos/1024/notes-2021-05-25.png?rf=1024",
+  },
+  {
+    id: "jobs",
+    name: "Matched Internships",
+    icon: "https://cdn.jim-nielsen.com/macos/1024/finder-2021-09-10.png?rf=1024",
+  },
+  {
+    id: "scholarships",
+    name: "Scholarships & Financial Aid",
+    icon: "https://cdn.jim-nielsen.com/macos/1024/safari-2021-06-02.png?rf=1024",
+  },
+  {
+    id: "discounts",
+    name: "Student Deals & Perks",
+    icon: "https://cdn.jim-nielsen.com/macos/1024/mail-2021-05-25.png?rf=1024",
+  },
+  {
+    id: "housing",
+    name: "Campus Housing & PGs",
+    icon: "https://cdn.jim-nielsen.com/macos/1024/photos-2021-05-28.png?rf=1024",
+  },
+];
+
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const [open, setOpen] = React.useState(false);
+  // Sidebar CLOSED by default as requested
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const { isLevel1Authenticated, user } = useAuth();
+  const [openApps, setOpenApps] = React.useState<string[]>(["attendance", "advisor"]);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && open) {
-        setOpen(false);
+      if (e.key === "Escape" && sidebarOpen) {
+        setSidebarOpen(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open]);
+  }, [sidebarOpen]);
+
+  const handleDockAppClick = (appId: string) => {
+    setOpenApps((prev) =>
+      prev.includes(appId) ? prev.filter((id) => id !== appId) : [...prev, appId]
+    );
+
+    const targetEl = document.getElementById(appId);
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative pb-24">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
@@ -64,31 +114,48 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         Skip to main content
       </a>
 
-      {/* Sidebar — desktop */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r bg-card md:flex">
-        <SidebarContent />
-      </aside>
+      {/* Kinetic Navigation Header */}
+      <SterlingGateKineticNavigation />
 
-      {/* Sidebar — mobile drawer */}
-      {open && (
+      {/* Toggle Floating Sidebar Button (Book Icon — Closed Book when closed, Open Book when open) */}
+      <button
+        onClick={() => setSidebarOpen((prev) => !prev)}
+        className="fixed top-20 left-4 z-40 flex items-center gap-2 rounded-full border bg-card/90 px-3.5 py-2 shadow-lg backdrop-blur hover:bg-accent transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        aria-label={sidebarOpen ? "Close navigation menu" : "Open navigation menu"}
+      >
+        {sidebarOpen ? (
+          <>
+            <BookOpen className="h-5 w-5 text-primary" aria-hidden="true" />
+            <span className="text-xs font-semibold">Close Menu</span>
+          </>
+        ) : (
+          <>
+            <Book className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+            <span className="text-xs font-semibold">Open Menu</span>
+          </>
+        )}
+      </button>
+
+      {/* Sidebar Drawer — Closed by default */}
+      {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 md:hidden"
+          className="fixed inset-0 z-40"
           role="dialog"
           aria-modal="true"
           aria-label="Navigation drawer"
         >
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-            onClick={() => setOpen(false)}
+            onClick={() => setSidebarOpen(false)}
             aria-hidden="true"
           />
-          <aside className="absolute inset-y-0 left-0 flex w-72 flex-col border-r bg-card pb-[env(safe-area-inset-bottom)] shadow-2xl">
+          <aside className="absolute inset-y-0 left-0 flex w-72 flex-col border-r bg-card pb-[env(safe-area-inset-bottom)] shadow-2xl z-50">
             <div className="flex items-center justify-between p-4">
-              <Brand />
+              <Brand isOpen={sidebarOpen} onClick={() => setSidebarOpen(false)} />
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setOpen(false)}
+                onClick={() => setSidebarOpen(false)}
                 aria-label="Close navigation menu"
                 className="h-11 w-11 rounded-lg"
               >
@@ -96,53 +163,48 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Button>
             </div>
             <Separator />
-            <SidebarContent onNavigate={() => setOpen(false)} />
+            <SidebarContent onNavigate={() => setSidebarOpen(false)} userEmail={user?.email} />
           </aside>
         </div>
       )}
 
-      {/* Mobile top bar */}
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b bg-card/95 px-4 py-3 backdrop-blur md:hidden">
-        <Brand />
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setOpen(true)}
-          aria-label="Open navigation menu"
-          aria-expanded={open}
-          className="h-11 w-11 rounded-lg"
-        >
-          <Menu className="h-5 w-5" aria-hidden="true" />
-        </Button>
-      </header>
+      {/* Main Content Viewport */}
+      <main id="main-content" className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+        {children}
+      </main>
 
-      <div className="md:pl-64">
-        <main id="main-content" className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-          {children}
-        </main>
-      </div>
+      {/* macOS Dock anchored at bottom of website when logged in */}
+      {isLevel1Authenticated && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
+          <MacOSDock
+            apps={DOCK_APPS}
+            onAppClick={handleDockAppClick}
+            openApps={openApps}
+          />
+        </div>
+      )}
     </div>
   );
 }
 
-function Brand() {
+function Brand({ isOpen, onClick }: { isOpen: boolean; onClick?: () => void }) {
   return (
-    <div className="flex items-center gap-2.5">
+    <button onClick={onClick} className="flex items-center gap-2.5 text-left focus-visible:outline-none">
       <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-        <BookOpen className="h-5 w-5" aria-hidden="true" />
+        {isOpen ? (
+          <BookOpen className="h-5 w-5" aria-hidden="true" />
+        ) : (
+          <Book className="h-5 w-5" aria-hidden="true" />
+        )}
       </div>
       <span className="text-xl font-bold tracking-tight">Atlas</span>
-    </div>
+    </button>
   );
 }
 
-function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarContent({ onNavigate, userEmail }: { onNavigate?: () => void; userEmail?: string }) {
   return (
     <>
-      <div className="p-4">
-        <Brand />
-      </div>
-      <Separator />
       <nav aria-label="Main Navigation" className="flex-1 space-y-1 p-2 overflow-y-auto">
         {NAV.map((item) => (
           <a
@@ -160,13 +222,13 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
       <Separator />
       <div className="p-4">
-        <ProfileMenu />
+        <ProfileMenu userEmail={userEmail} />
       </div>
     </>
   );
 }
 
-function ProfileMenu() {
+function ProfileMenu({ userEmail }: { userEmail?: string }) {
   return (
     <Collapsible>
       <CollapsibleTrigger asChild>
@@ -180,8 +242,8 @@ function ProfileMenu() {
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary/10 text-primary font-semibold">ST</AvatarFallback>
               </Avatar>
-              <span className="flex-1 text-left text-sm font-medium">
-                Student Portal
+              <span className="flex-1 text-left text-xs font-medium truncate">
+                {userEmail || "Student Portal"}
               </span>
               <ChevronDown className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             </Button>
