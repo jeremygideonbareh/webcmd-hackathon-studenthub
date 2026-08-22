@@ -9,6 +9,7 @@ import { Reveal } from "@/components/reveal";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuthProvider, useAuth } from "@/context/auth-context";
+import { ThemeProvider } from "@/context/theme-context";
 
 const Dashboard = React.lazy(() =>
   import("@/components/dashboard").then((m) => ({ default: m.Dashboard }))
@@ -86,8 +87,10 @@ function MainContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MainContent />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <MainContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

@@ -68,9 +68,10 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
   videoSrc = DEFAULT_VIDEO_URL,
   poster,
   videoType = "auto",
-  topWord = "ATLAS",
-  rightWord = "STUDENT",
-  bottomWord = "HUB",
+  topWord = "atlas",
+  rightWord = "student",
+  bottomWord = "hub",
+  textColor = "#FFFFFF",
   backgroundColor = "#0b0b0e",
   showClocks = true,
   clocks = DEFAULT_CLOCKS,
@@ -140,53 +141,48 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
         ref={containerRef}
         className="relative h-screen min-h-[520px] w-full overflow-hidden select-none"
       >
-        {/* ── Animated Aalto Kinetic Typography Overlay ── */}
+        {/* ── Animated Kinetic Typography Overlay (Original Typography) ── */}
         <div
           ref={textGroupRef}
           className="absolute inset-0 z-30 pointer-events-none flex flex-col justify-between"
           style={{ willChange: "transform, opacity, filter" }}
         >
-          {/* Top Word: ATLAS (Aalto Display Font with Coral -> Terracotta Gradient) */}
+          {/* Top Word: atlas (Original Sans-Serif + Soft Coral Accent) */}
           <div className="absolute top-[2%] inset-x-0 flex justify-center">
             <span
-              className="font-extrabold uppercase tracking-tighter leading-none select-none text-center"
+              className="font-black tracking-tighter leading-none select-none text-center"
               style={{
-                background: "linear-gradient(135deg, #FF9398 0%, #D14836 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                fontSize: "clamp(4rem, 13vw, 13rem)",
-                fontFamily: "'Syne', 'Bebas Neue', sans-serif",
-                textShadow: "0 10px 30px rgba(209, 72, 54, 0.2)",
+                color: "#FF9398",
+                fontSize: "clamp(3.5rem, 11vw, 11rem)",
+                fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
               }}
             >
               {topWord}
             </span>
           </div>
 
-          {/* Right Word: STUDENT (Aalto Display Font in Crisp White Accent) */}
-          <div className="absolute right-[3%] top-[36%] flex items-center">
+          {/* Right Word: student (Original Sans-Serif + White Accent) */}
+          <div className="absolute right-[3%] top-[38%] flex items-center">
             <span
-              className="font-extrabold uppercase tracking-tighter leading-none select-none drop-shadow-2xl"
+              className="font-black tracking-tighter leading-none select-none drop-shadow-lg"
               style={{
-                color: "#FFFFFF",
-                fontSize: "clamp(3.8rem, 12vw, 12rem)",
-                fontFamily: "'Syne', 'Bebas Neue', sans-serif",
+                color: textColor,
+                fontSize: "clamp(3.5rem, 11vw, 11rem)",
+                fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
               }}
             >
               {rightWord}
             </span>
           </div>
 
-          {/* Bottom Word: HUB (Aalto Display Font in Terracotta -> Gold Gradient) */}
+          {/* Bottom Word: hub (Original Editorial Serif Italic + Warm Terracotta Accent) */}
           <div className="absolute bottom-[2%] inset-x-0 flex justify-center">
             <span
-              className="font-extrabold uppercase tracking-tighter leading-none select-none text-center"
+              className="font-normal italic leading-none select-none text-center"
               style={{
-                background: "linear-gradient(135deg, #D14836 0%, #ECD06F 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                fontSize: "clamp(4.5rem, 15vw, 14rem)",
-                fontFamily: "'Syne', 'Bebas Neue', sans-serif",
+                color: "#D14836",
+                fontSize: "clamp(4rem, 14vw, 13rem)",
+                fontFamily: "Georgia, 'Times New Roman', Cambria, serif",
               }}
             >
               {bottomWord}
@@ -205,7 +201,7 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
                   className="flex items-center gap-[clamp(0.5rem,1.2vw,1.5rem)] font-medium"
                 >
                   <span className="tabular-nums font-semibold text-[#FF9398]">{formatTime(tz)}</span>
-                  <span style={{ color: "#FFFFFF" }}>{label}</span>
+                  <span style={{ color: textColor }}>{label}</span>
                 </div>
               ))}
             </div>

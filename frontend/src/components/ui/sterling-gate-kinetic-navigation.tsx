@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { CustomEase } from "gsap/CustomEase";
-import { Book, BookOpen, KeyRound } from "lucide-react";
+import { Book, BookOpen, KeyRound, Moon, Sun } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
+import { useTheme } from "@/context/theme-context";
 import { StudentAuthModal } from "@/components/student-auth-modal";
 
-// Register GSAP Plugins safely
 if (typeof window !== "undefined") {
   gsap.registerPlugin(CustomEase);
 }
@@ -15,8 +15,8 @@ export function SterlingGateKineticNavigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [kpModalOpen, setKpModalOpen] = useState(false);
   const { user, isLevel1Authenticated, isLevel2Authenticated } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
-  // Initial Setup & Hover Effects
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -83,7 +83,6 @@ export function SterlingGateKineticNavigation() {
     };
   }, []);
 
-  // Menu Open/Close Animation Effect
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -174,7 +173,26 @@ export function SterlingGateKineticNavigation() {
             </button>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Dark / Light Theme Toggle Switch */}
+            <button
+              onClick={toggleTheme}
+              className="flex items-center gap-1.5 rounded-full border bg-card px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors shadow-sm"
+              title={`Switch to ${theme === "dark" ? "Light" : "Dark"} mode`}
+            >
+              {theme === "dark" ? (
+                <>
+                  <Moon className="h-3.5 w-3.5 text-[#ECD06F]" />
+                  <span className="hidden sm:inline text-muted-foreground">Dark</span>
+                </>
+              ) : (
+                <>
+                  <Sun className="h-3.5 w-3.5 text-[#D14836]" />
+                  <span className="hidden sm:inline text-muted-foreground">Light</span>
+                </>
+              )}
+            </button>
+
             <div
               className="nav-toggle-label cursor-pointer text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground hidden sm:block"
               onClick={toggleMenu}
@@ -219,33 +237,26 @@ export function SterlingGateKineticNavigation() {
               <div className="backdrop-layer second absolute inset-0 bg-pink-500/10"></div>
               <div className="backdrop-layer absolute inset-0 bg-[#121216]"></div>
 
-              {/* Abstract Ambient Background Shapes */}
               <div className="ambient-background-shapes absolute inset-0 opacity-80">
                 <svg className="bg-shape bg-shape-1 absolute inset-0 w-full h-full" viewBox="0 0 400 400" fill="none">
                   <circle className="shape-element" cx="80" cy="120" r="40" fill="rgba(99,102,241,0.25)" />
                   <circle className="shape-element" cx="300" cy="80" r="60" fill="rgba(139,92,246,0.2)" />
                 </svg>
-
                 <svg className="bg-shape bg-shape-2 absolute inset-0 w-full h-full" viewBox="0 0 400 400" fill="none">
                   <path className="shape-element" d="M0 200 Q100 100, 200 200 T 400 200" stroke="rgba(99,102,241,0.3)" strokeWidth="60" fill="none" />
                 </svg>
-
                 <svg className="bg-shape bg-shape-3 absolute inset-0 w-full h-full" viewBox="0 0 400 400" fill="none">
                   <circle className="shape-element" cx="50" cy="50" r="8" fill="rgba(99,102,241,0.4)" />
-                  <circle className="shape-element" cx="150" cy="150" r="12" fill="rgba(236,72,153,0.35)" />
                 </svg>
-
                 <svg className="bg-shape bg-shape-4 absolute inset-0 w-full h-full" viewBox="0 0 400 400" fill="none">
                   <path className="shape-element" d="M100 100 Q150 50, 200 100 Q250 150, 200 200 Q150 250, 100 200 Q50 150, 100 100" fill="rgba(99,102,241,0.2)" />
                 </svg>
-
                 <svg className="bg-shape bg-shape-5 absolute inset-0 w-full h-full" viewBox="0 0 400 400" fill="none">
                   <line className="shape-element" x1="0" y1="100" x2="300" y2="400" stroke="rgba(99,102,241,0.25)" strokeWidth="30" />
                 </svg>
               </div>
             </div>
 
-            {/* Menu Header */}
             <div className="relative z-10 pt-4 flex items-center justify-between border-b border-white/10 pb-4">
               <div className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-primary" />
@@ -259,7 +270,6 @@ export function SterlingGateKineticNavigation() {
               </button>
             </div>
 
-            {/* Menu Items List */}
             <div className="menu-content-wrapper relative z-10 py-8">
               <p className="text-[10px] uppercase font-mono text-primary tracking-widest mb-4">
                 Platform Navigation
@@ -308,7 +318,6 @@ export function SterlingGateKineticNavigation() {
               </ul>
             </div>
 
-            {/* Menu Footer Student Session */}
             <div className="relative z-10 pt-4 border-t border-white/10 text-xs text-white/70 space-y-2">
               {isLevel1Authenticated ? (
                 <div className="flex items-center justify-between">

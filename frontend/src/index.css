@@ -4,6 +4,33 @@
 
 @layer base {
   :root {
+    /* Light Mode Palette */
+    --background: 0 0% 98%;
+    --foreground: 240 10% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 4%;
+    --primary: 4 64% 51%; /* #D14836 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 358 100% 90%; /* Soft Coral Light */
+    --secondary-foreground: 240 10% 4%;
+    --accent: 46 76% 50%;
+    --accent-foreground: 240 10% 4%;
+    --muted: 220 14% 94%;
+    --muted-foreground: 220 9% 45%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 13% 90%;
+    --input: 220 13% 90%;
+    --ring: 4 64% 51%;
+    --radius: 0.75rem;
+
+    --font-sans: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  .dark {
+    /* Dark Mode Palette (Default) */
     --background: 240 10% 4%;
     --foreground: 0 0% 98%;
     --card: 240 10% 7%;
@@ -18,32 +45,8 @@
     --accent-foreground: 240 10% 4%;
     --muted: 240 6% 14%;
     --muted-foreground: 240 5% 65%;
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 6% 16%;
-    --input: 240 6% 16%;
-    --ring: 4 64% 51%;
-    --radius: 0.75rem;
-
-    --font-display: "Syne", "Bebas Neue", sans-serif;
-    --font-sans: "Outfit", -apple-system, BlinkMacSystemFont, sans-serif;
-  }
-
-  .dark {
-    --background: 240 10% 4%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 7%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 7%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 4 64% 51%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 358 100% 79%;
-    --secondary-foreground: 240 10% 4%;
-    --accent: 46 76% 68%;
-    --accent-foreground: 240 10% 4%;
-    --muted: 240 6% 14%;
-    --muted-foreground: 240 5% 65%;
     --border: 240 6% 16%;
     --input: 240 6% 16%;
     --ring: 4 64% 51%;
@@ -60,36 +63,20 @@
   }
 
   body {
-    @apply bg-[#0b0b0e] text-foreground font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased transition-colors duration-300;
     font-family: var(--font-sans);
   }
-
-  h1, h2, h3, h4, .font-display {
-    font-family: var(--font-display);
-    letter-spacing: -0.03em;
-  }
 }
 
-/* Custom Aalto Display & Harmony Gradient Utilities */
-.aalto-title {
-  font-family: "Syne", "Bebas Neue", sans-serif;
-  text-transform: uppercase;
-  letter-spacing: -0.04em;
-  font-weight: 800;
-}
-
+/* Gradient Utilities */
 .gradient-text {
-  background: linear-gradient(135deg, #FF9398 0%, #D14836 45%, #ECD06F 100%);
+  background: linear-gradient(135deg, #FF9398 0%, #D14836 50%, #ECD06F 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.gradient-border {
-  border-image: linear-gradient(135deg, rgba(255, 147, 152, 0.4), rgba(209, 72, 54, 0.4), rgba(236, 208, 111, 0.3)) 1;
-}
-
 .gradient-bg-subtle {
-  background: linear-gradient(135deg, rgba(209, 72, 54, 0.12) 0%, rgba(255, 147, 152, 0.08) 50%, rgba(236, 208, 111, 0.06) 100%);
+  background: linear-gradient(135deg, rgba(209, 72, 54, 0.1) 0%, rgba(255, 147, 152, 0.06) 50%, rgba(236, 208, 111, 0.05) 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {
