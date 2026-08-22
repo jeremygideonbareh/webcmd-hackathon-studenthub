@@ -9,8 +9,8 @@ import json
 import os
 from http.server import BaseHTTPRequestHandler
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
-SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
+SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
 
 REACTION_MULTIPLIERS = {"👍": 1.2, "👎": 0.8, "⭐": 1.5, "🚫": 0.3}
 WEIGHT_MIN, WEIGHT_MAX = 0.1, 3.0

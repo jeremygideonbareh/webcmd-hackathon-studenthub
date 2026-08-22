@@ -8,8 +8,8 @@ import json
 import os
 from http.server import BaseHTTPRequestHandler
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
-SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").strip()
+SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
 
 
 def _get(path):

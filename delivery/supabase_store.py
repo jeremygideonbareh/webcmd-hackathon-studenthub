@@ -24,8 +24,8 @@ class SupabaseStore:
     """Minimal Supabase REST client for the atlas tables."""
 
     def __init__(self, url: str | None = None, service_key: str | None = None):
-        self.url = (url or os.environ.get("SUPABASE_URL", "")).rstrip("/")
-        self.key = service_key or os.environ.get("SUPABASE_SERVICE_KEY", "")
+        self.url = (url or os.environ.get("SUPABASE_URL", "")).rstrip("/").strip()
+        self.key = (service_key or os.environ.get("SUPABASE_SERVICE_KEY", "")).strip()
 
     @property
     def ready(self) -> bool:
