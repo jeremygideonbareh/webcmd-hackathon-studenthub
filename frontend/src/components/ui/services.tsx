@@ -2,6 +2,7 @@ import {
   GraduationCap,
   Briefcase,
   Home,
+  FileText,
   ArrowRight,
 } from "lucide-react";
 
@@ -34,6 +35,16 @@ const services = [
     image:
       "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=512&q=80",
   },
+  {
+    title: "AI Resume Lab Analyzer",
+    description:
+      "AI resume feedback, ATS score analysis, and instant bullet optimization.",
+    href: "https://resume-lab-one.vercel.app/",
+    external: true,
+    icon: FileText,
+    image:
+      "https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=512&q=80",
+  },
 ];
 
 export function ServicesSection() {
@@ -53,11 +64,13 @@ export function ServicesSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
           {services.map((service) => (
             <a
               key={service.title}
               href={service.href}
+              target={service.external ? "_blank" : undefined}
+              rel={service.external ? "noreferrer" : undefined}
               className="group flex min-h-[44px] flex-col overflow-hidden rounded-3xl bg-muted/40 transition-all duration-300 hover:bg-muted/80 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label={`Explore ${service.title}`}
             >

@@ -346,11 +346,24 @@ def get_session(email: str | None = None) -> JSONResponse:
     return JSONResponse({"session": sess or {}})
 
 
-@app.post("/api/advisor/analyze")
+@app.api_route("/api/advisor/analyze", methods=["POST", "GET", "OPTIONS"])
 async def advisor_analyze(request: Request) -> JSONResponse:
-    body = await request.json()
-    user_skills = body.get("skills", ["Python", "Git", "SQL"])
-    stream = body.get("stream", "Engineering")
+    if request.method == "OPTIONS":
+        return JSONResponse({"ok": True})
+    user_skills = ["Python", "Git", "SQL"]
+    stream = "Engineering"
+    if request.method == "GET":
+        skills_str = request.query_params.get("skills", "Python,Git,SQL")
+        user_skills = [s.strip() for s in skills_str.split(",") if s.strip()]
+        stream = request.query_params.get("stream", "Engineering")
+    else:
+        try:
+            body = await request.json()
+            user_skills = body.get("skills", user_skills)
+            stream = body.get("stream", stream)
+        except Exception:
+            pass
+
     result = analyze_resume_skills(user_skills=user_skills, stream=stream)
     return JSONResponse(result)
 

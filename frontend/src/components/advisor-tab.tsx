@@ -3,6 +3,8 @@ import {
   BookOpen,
   CheckCircle2,
   ChevronRight,
+  ExternalLink,
+  FileText,
   Lightbulb,
   Sparkles,
   XCircle,
@@ -53,7 +55,7 @@ export function AdvisorTab() {
   return (
     <Card id="advisor" className="shadow-sm border">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -63,6 +65,16 @@ export function AdvisorTab() {
               Select your academic stream to discover missing skills, portfolio project ideas, and bullet point suggestions.
             </CardDescription>
           </div>
+          <a
+            href="https://resume-lab-one.vercel.app/"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/80 px-4 py-2.5 text-xs font-bold text-primary-foreground shadow-md hover:opacity-95 transition-all"
+          >
+            <FileText className="h-4 w-4" />
+            <span>Launch Resume Lab Analyzer</span>
+            <ExternalLink className="h-3.5 w-3.5 opacity-80" />
+          </a>
         </div>
 
         {/* Stream Pills */}
