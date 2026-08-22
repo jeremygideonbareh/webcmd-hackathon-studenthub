@@ -30,3 +30,8 @@ server_log.txt
 # OS
 .DS_Store
 Thumbs.db
+
+intel/cv.tex
+intel/resume_parsed.json
+intel/internradar_output.json
+intel/rentwatch_output.json
