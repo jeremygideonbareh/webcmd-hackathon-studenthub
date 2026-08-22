@@ -11,10 +11,10 @@ Modes:
 Flow:
     1. Load config
     2. Gather data (mock files, or real portal/intelligence modules)
-    3. Load preference weights from SQLite
+    3. Load preference weights from SQLite / Supabase
     4. Build digest payload
     5. Write digest to data/*.json (dashboard reads these live)
-    6. Log digest to SQLite history
+    6. Log digest to SQLite / Supabase history
 """
 
 from __future__ import annotations
@@ -26,7 +26,6 @@ from pathlib import Path
 
 from config import Config
 from delivery.database import Database
-from delivery.learning_engine import LearningEngine
 
 BASE_DIR = Path(__file__).resolve().parent
 CONTRACT_FILES = (
@@ -91,15 +90,38 @@ def _gather_mock(cfg: Config) -> None:
 
 
 def _gather_live(cfg: Config) -> bool:
-    """Call the real portal/intelligence modules. Falls back to mock on failure."""
+    """Call the real portal/intelligence modules to update contract files."""
     try:
-        import portal  # noqa: F401
-        import intelligence  # noqa: F401
-    except ImportError:
+        import portal
+        import intelligence
+
+        # 1. Portal data
+        att = portal.get_attendance()
+        gpa = portal.get_gpa()
+
+        risk_subjects = []
+        for s in att.get("subjects", []):
+            risk = portal.calculate_risk(s["classes_present"], s["classes_total"])
+            risk["code"] = s["code"]
+            risk["name"] = s["name"]
+            risk_subjects.append(risk)
+
+        (cfg.data_dir / "attendance.json").write_text(json.dumps(att, indent=2), encoding="utf-8")
+        (cfg.data_dir / "gpa.json").write_text(json.dumps(gpa, indent=2), encoding="utf-8")
+        (cfg.data_dir / "risk_report.json").write_text(json.dumps({"subjects": risk_subjects}, indent=2), encoding="utf-8")
+
+        # 2. Intelligence module (TF-IDF matcher + NoBroker housing)
+        jobs_data = intelligence.get_matched_jobs()
+        housing_data = intelligence.get_housing()
+
+        (cfg.data_dir / "filtered_jobs.json").write_text(json.dumps(jobs_data, indent=2), encoding="utf-8")
+        (cfg.data_dir / "housing_raw.json").write_text(json.dumps(housing_data, indent=2), encoding="utf-8")
+
+        print("[orchestrator] live modules executed successfully")
+        return True
+    except Exception as err:
+        print(f"[orchestrator] Error executing live modules: {err}")
         return False
-    # NOTE: real module wiring happens at Checkpoint 3 once Aaron's and
-    # Sapna's branches merge. Until then, this returns False → mock fallback.
-    return False
 
 
 def run_pipeline(cfg: Config, mode: str = "mock") -> dict:
