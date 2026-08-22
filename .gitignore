@@ -22,6 +22,11 @@ atlas.db
 *.swp
 *.swo
 
+# Local dev artifacts
+server_log.txt
+.pytest_cache/
+*.log
+
 # OS
 .DS_Store
 Thumbs.db
