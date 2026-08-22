@@ -223,15 +223,15 @@ export function Dashboard() {
 }
 
 function GpaStrip({ gpa }: { gpa: any }) {
-  if (!gpa || typeof gpa.gpa !== "number") return null;
+  if (!gpa || (typeof gpa.gpa !== "number" && typeof gpa.current_cgpa !== "number")) return null;
   return (
     <Card className="bg-primary/5 border-primary/20">
       <CardContent className="flex items-center justify-between p-4 sm:p-6">
         <div>
-          <p className="text-xs uppercase tracking-wider text-muted-[#9a9a9a] font-semibold">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
             Cumulative GPA
           </p>
-          <p className="text-3xl font-black text-primary sm:text-4xl">{gpa.gpa.toFixed(2)}</p>
+          <p className="text-3xl font-black text-primary sm:text-4xl">{(gpa.current_cgpa || gpa.gpa || 0).toFixed(2)}</p>
         </div>
         <div className="text-right text-xs text-muted-foreground">
           <p>Credits: <span className="font-semibold text-foreground">{gpa.credits || 120}</span></p>
@@ -247,7 +247,7 @@ function AttendanceSection({ subjects }: { subjects: any[] }) {
 
   const chartData = subjects.map((s) => ({
     name: s.code || s.name,
-    percentage: s.percentage,
+    percentage: s.current_pct,
     risk: s.risk_level || "SAFE",
   }));
 
@@ -276,22 +276,22 @@ function AttendanceSection({ subjects }: { subjects: any[] }) {
             </CardHeader>
             <CardContent className="p-4 pt-0 space-y-2">
               <div className="flex items-baseline justify-between">
-                <span className="text-2xl font-bold">{subj.percentage}%</span>
+                <span className="text-2xl font-bold">{subj.current_pct}%</span>
                 <span className="text-xs text-muted-foreground">
-                  {subj.attended}/{subj.total} Held
+                  {subj.classes_present}/{subj.classes_total} Held
                 </span>
               </div>
               <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
                 <div
                   className="h-full transition-all"
                   style={{
-                    width: `${subj.percentage}%`,
+                    width: `${subj.current_pct}%`,
                     backgroundColor: RISK_COLORS[subj.risk_level as RiskLevel],
                   }}
                 />
               </div>
               <p className="text-[11px] text-muted-foreground">
-                {subj.status_reason || "Attendance record verified via KP portal."}
+                {subj.projection || "Attendance record verified via KP portal."}
               </p>
             </CardContent>
           </Card>

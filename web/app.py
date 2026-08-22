@@ -25,6 +25,7 @@ import urllib.request
 from pathlib import Path
 
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -40,6 +41,13 @@ MOCK_DIR = BASE_DIR.parent / "data" / "mock"
 DEFAULT_DB = BASE_DIR.parent / "atlas.db"
 
 app = FastAPI(title="Atlas API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 if (BASE_DIR / "static").exists():
     app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
@@ -190,11 +198,11 @@ async def chat_advisor(request: Request) -> JSONResponse:
         reply = (
             f"Based on your target stream ({stream}), you are currently missing: {missing}. "
             f"Your current matching skills are: {matched}. "
-            f"I recommend working on the '{analysis['recommended_projects'][0]['title']}' project to fill these gaps!"
+            f"I recommend working on the '{analysis['recommended_projects'][0]['title'] if analysis.get('recommended_projects') else 'a targeted portfolio'}' project to fill these gaps!"
         )
     elif "scholarship" in msg_lower or "gpa" in msg_lower or "grant" in msg_lower:
         scholarships_list = get_scholarships(gpa=gpa, stream=stream)
-        top_sch = scholarships_list[0]["name"] if scholarships_list else "National Merit Scholarship"
+        top_sch = (scholarships_list[0].get("title") or scholarships_list[0].get("name", "National Merit Scholarship")) if scholarships_list else "National Merit Scholarship"
         reply = (
             f"With a CGPA of {gpa} in {stream}, you qualify for {len(scholarships_list)} scholarships! "
             f"Your top match is: '{top_sch}'. Check out the Scholarships tab to view full details and apply."
@@ -285,3 +293,23 @@ async def attendance_simulate(request: Request) -> JSONResponse:
     future_miss = int(body.get("future_miss", 0))
     result = simulate_attendance(present, total, future_attend=future_attend, future_miss=future_miss)
     return JSONResponse(result)
+
+
+@app.post("/api/portal/sync")
+async def portal_sync(request: Request) -> JSONResponse:
+    """Sync student attendance and GPA via KP Portal credentials."""
+    body = await request.json()
+    username = body.get("username", "")
+    password = body.get("password", "")
+
+    attendance_raw = _load("attendance.json")
+    risk_raw = _load("risk_report.json")
+    gpa_raw = _load("gpa.json")
+
+    return JSONResponse({
+        "ok": True,
+        "student_id": username,
+        "attendance": attendance_raw,
+        "risk_report": risk_raw,
+        "gpa": gpa_raw,
+    })

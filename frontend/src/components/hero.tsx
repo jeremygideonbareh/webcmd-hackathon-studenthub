@@ -12,14 +12,14 @@ export function Hero() {
   const [level2Open, setLevel2Open] = React.useState(false);
 
   return (
-    <div className="relative">
+    <div id="home" className="relative">
       {/* WorkPageHero Aalto Display Scroll-Expand Kinetic Video Component */}
       <WorkPageHero
         videoSrc="https://res.cloudinary.com/dsuwzuaxp/video/upload/video1_horxtt.mp4"
         topWord="ATLAS"
         rightWord="STUDENT"
         bottomWord="HUB"
-        backgroundColor="#0b0b0e"
+        backgroundColor={undefined}
         showClocks={true}
         clocks={[
           { tz: "Asia/Kolkata", label: "INDIA" },

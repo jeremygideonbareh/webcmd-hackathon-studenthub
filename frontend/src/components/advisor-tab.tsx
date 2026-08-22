@@ -26,9 +26,11 @@ export function AdvisorTab() {
   const [skillsInput, setSkillsInput] = React.useState("Python, Git, SQL, Data Structures");
   const [analysis, setAnalysis] = React.useState<SkillGapAnalysis | null>(null);
   const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   const handleAnalyze = React.useCallback(async (selectedStream: StreamType, skillsText: string) => {
     setLoading(true);
+    setError(null);
     try {
       const skillsArray = skillsText
         .split(",")
@@ -36,8 +38,9 @@ export function AdvisorTab() {
         .filter(Boolean);
       const res = await analyzeSkills(skillsArray, selectedStream);
       setAnalysis(res);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to analyze skills:", err);
+      setError(err?.message || "Failed to analyze skills. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -105,6 +108,31 @@ export function AdvisorTab() {
             </Button>
           </div>
         </div>
+
+        {error && (
+          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+            <p className="font-semibold">Analysis Error</p>
+            <p className="mt-1 text-xs text-muted-foreground">{error}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void handleAnalyze(stream, skillsInput)}
+              className="mt-3 text-xs"
+            >
+              Retry Analysis
+            </Button>
+          </div>
+        )}
+
+        {loading && !analysis && (
+          <div className="space-y-4 animate-pulse">
+            <div className="h-24 rounded-xl bg-muted" />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="h-32 rounded-xl bg-muted" />
+              <div className="h-32 rounded-xl bg-muted" />
+            </div>
+          </div>
+        )}
 
         {analysis && (
           <div className="space-y-6">

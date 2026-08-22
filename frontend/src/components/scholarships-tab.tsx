@@ -27,7 +27,7 @@ export function ScholarshipsTab({
       setScholarships(initialScholarships);
       return;
     }
-    const filterStream = stream === "All" ? "Engineering" : stream;
+    const filterStream = stream === "All" ? undefined : stream;
     fetchScholarships(7.5, filterStream)
       .then((data) => setScholarships(data))
       .catch((err) => console.error("Error loading scholarships:", err));

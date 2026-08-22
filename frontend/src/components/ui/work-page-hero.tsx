@@ -71,7 +71,7 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
   topWord = "atlas",
   rightWord = "student",
   bottomWord = "hub",
-  textColor = "currentColor",
+  textColor: _textColor = "currentColor",
   backgroundColor = "transparent",
   showClocks = true,
   clocks = DEFAULT_CLOCKS,
@@ -135,11 +135,17 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
   return (
     <div
       className={`relative w-full overflow-hidden ${className}`}
-      style={{ background: backgroundColor }}
+      style={{ background: backgroundColor || undefined }}
     >
+      {/* Use theme bg when no explicit backgroundColor is set */}
+      {!backgroundColor && (
+        <style>{`
+          .wph-theme-bg { background: hsl(var(--background)); }
+        `}</style>
+      )}
       <section
         ref={containerRef}
-        className="relative h-screen min-h-[520px] w-full overflow-hidden select-none"
+        className={`relative h-screen min-h-[520px] w-full overflow-hidden select-none ${!backgroundColor ? 'wph-theme-bg' : ''}`}
       >
         {/* ── Animated Kinetic Typography Overlay ── */}
         <div
@@ -152,7 +158,7 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
             <span
               className="font-black uppercase tracking-tighter leading-none select-none text-left"
               style={{
-                color: "#FF9398",
+                color: "#D14836",
                 fontSize: "clamp(2.5rem, 8.5vw, 8.5rem)",
                 fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
               }}
@@ -164,9 +170,8 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
           {/* Right Word: student */}
           <div className="absolute right-[4%] top-[38%] flex items-center justify-end">
             <span
-              className="font-black uppercase tracking-tighter leading-none select-none text-right drop-shadow-lg"
+              className="font-black uppercase tracking-tighter leading-none select-none text-right drop-shadow-lg text-foreground"
               style={{
-                color: textColor,
                 fontSize: "clamp(2.5rem, 8.5vw, 8.5rem)",
                 fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
               }}
@@ -193,15 +198,14 @@ export const WorkPageHero: React.FC<WorkPageHeroProps> = ({
           {showClocks && clocks.length > 0 && (
             <div
               className="absolute left-[clamp(1rem,3vw,3.5rem)] top-1/2 -translate-y-1/2 flex flex-col gap-3 font-mono text-[clamp(9px,1vw,11px)] uppercase tracking-[0.15em] opacity-90"
-              style={{ color: "#ECD06F" }}
             >
               {clocks.map(({ tz, label }) => (
                 <div
                   key={tz}
                   className="flex items-center gap-[clamp(0.4rem,1vw,1.2rem)] font-medium"
                 >
-                  <span className="tabular-nums font-semibold text-[#FF9398]">{formatTime(tz)}</span>
-                  <span style={{ color: textColor }}>{label}</span>
+                  <span className="tabular-nums font-semibold text-[#D14836]">{formatTime(tz)}</span>
+                  <span className="text-foreground/70">{label}</span>
                 </div>
               ))}
             </div>
