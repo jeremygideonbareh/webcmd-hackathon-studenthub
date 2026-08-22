@@ -1,6 +1,7 @@
 import * as React from "react";
-import { Bot, Send, Sparkles, User, X } from "lucide-react";
+import { Bot, Sparkles, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PromptInput } from "@/components/ui/ai-chat-input";
 import { useAuth } from "@/context/auth-context";
 
 interface Message {
@@ -21,7 +22,6 @@ const QUICK_PROMPTS = [
 export function AIChatbotWidget() {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = React.useState(false);
-  const [input, setInput] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [messages, setMessages] = React.useState<Message[]>([
     {
@@ -46,8 +46,11 @@ export function AIChatbotWidget() {
     }
   }, [messages, isOpen]);
 
-  const handleSend = async (textToSend?: string) => {
-    const query = textToSend || input;
+  const handleSend = async (
+    textToSend: string,
+    meta?: { model: string; effort: string; attachments: File[] }
+  ) => {
+    const query = textToSend;
     if (!query.trim()) return;
 
     const userMsg: Message = {
@@ -58,7 +61,6 @@ export function AIChatbotWidget() {
     };
 
     setMessages((prev) => [...prev, userMsg]);
-    if (!textToSend) setInput("");
     setLoading(true);
 
     try {
@@ -67,6 +69,8 @@ export function AIChatbotWidget() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: query,
+          model: meta?.model || "Groq LPU",
+          effort: meta?.effort || "Medium",
           stream: user?.stream || "Engineering",
           user_skills: user?.skills || ["Python", "Git", "SQL"],
           gpa: user?.gpa || 8.2,
@@ -79,7 +83,7 @@ export function AIChatbotWidget() {
         sender: "bot",
         text: data.reply || "I have analyzed your request and updated your stream recommendations.",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        engine: data.llm_engine || "Atlas Intelligence Core",
+        engine: data.llm_engine || meta?.model || "Atlas Groq LPU Engine",
       };
 
       setMessages((prev) => [...prev, botMsg]);
@@ -124,7 +128,7 @@ export function AIChatbotWidget() {
           </div>
 
           {/* Messages Body */}
-          <div className="h-80 overflow-y-auto p-4 space-y-3 bg-muted/30 text-xs">
+          <div className="h-72 overflow-y-auto p-4 space-y-3 bg-muted/30 text-xs">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -177,25 +181,14 @@ export function AIChatbotWidget() {
             ))}
           </div>
 
-          {/* Input Footer */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSend();
-            }}
-            className="flex items-center gap-2 border-t p-2.5 bg-card"
-          >
-            <input
-              type="text"
-              placeholder="Ask how to improve skills, resume, or advice..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              className="flex-1 bg-transparent px-2 py-1 text-xs focus-visible:outline-none"
+          {/* Advanced PromptInput Footer */}
+          <div className="border-t p-2 bg-card flex justify-center">
+            <PromptInput
+              onSubmit={(val, meta) => handleSend(val, meta)}
+              placeholder="Ask Atlas AI Advisor..."
+              className="max-w-full"
             />
-            <Button type="submit" size="icon" className="h-8 w-8 shrink-0" disabled={loading || !input.trim()}>
-              <Send className="h-3.5 w-3.5" />
-            </Button>
-          </form>
+          </div>
         </div>
       )}
 
@@ -212,3 +205,5 @@ export function AIChatbotWidget() {
     </div>
   );
 }
+
+export default AIChatbotWidget;
