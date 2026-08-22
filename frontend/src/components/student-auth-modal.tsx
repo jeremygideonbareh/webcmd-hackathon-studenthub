@@ -59,23 +59,26 @@ export function StudentAuthModal({ isOpen, onClose, onSuccess }: StudentAuthModa
       }
 
       const data = await res.json();
-      const subjects = data?.attendance?.subjects || data?.risk_report?.subjects || [];
-      const gpaVal = data?.gpa?.current_cgpa || 8.45;
+      const subjects = data?.risk_report?.subjects || data?.attendance?.subjects || [];
+      const gpaVal = data?.gpa?.current_cgpa || data?.gpa?.gpa || 8.45;
 
       setSyncedData({
         subjects: subjects.length,
         attendance: subjects.length > 0
           ? `${Math.round(subjects.reduce((a: number, s: any) => a + (s.current_pct || s.attendance_pct || 85), 0) / subjects.length)}% avg`
           : "4 subjects synced",
-        gpa: gpaVal.toFixed(2),
+        gpa: typeof gpaVal === "number" ? gpaVal.toFixed(2) : String(gpaVal),
       });
+
+      try {
+        localStorage.setItem("atlas_synced_portal_data", JSON.stringify(data));
+      } catch {}
 
       loginLevel2({ studentId: registerNo.trim(), portalConnected: true });
       setStep("connected");
-      onSuccess(registerNo.trim(), "Christ University (Knowledge Pro)");
-    } catch {
-      // Fallback for hackathon demo — still connect with mock data
-      console.warn("[Portal] Live sync unavailable, using mock data fallback");
+      onSuccess(data);
+    } catch (err) {
+      console.warn("[Portal] Live sync fallback:", err);
 
       setSyncedData({
         subjects: 4,
@@ -85,7 +88,7 @@ export function StudentAuthModal({ isOpen, onClose, onSuccess }: StudentAuthModa
 
       loginLevel2({ studentId: registerNo.trim(), portalConnected: true });
       setStep("connected");
-      onSuccess(registerNo.trim(), "Christ University (Knowledge Pro)");
+      onSuccess(undefined);
     } finally {
       setConnecting(false);
     }

@@ -75,6 +75,19 @@ export function Dashboard() {
 
     try {
       const data = await fetchDigest();
+      try {
+        const savedPortal = localStorage.getItem("atlas_synced_portal_data");
+        if (savedPortal) {
+          const parsed = JSON.parse(savedPortal);
+          const syncedSubjects = parsed?.risk_report?.subjects || parsed?.attendance?.subjects || parsed?.attendance;
+          if (Array.isArray(syncedSubjects) && syncedSubjects.length > 0) {
+            data.attendance = syncedSubjects;
+          }
+          if (parsed?.gpa) {
+            data.gpa = parsed.gpa;
+          }
+        }
+      } catch {}
       setDigest(data);
     } catch (e: any) {
       setError(e.message || "Failed to load dashboard data.");
@@ -216,7 +229,15 @@ export function Dashboard() {
       <StudentAuthModal
         isOpen={level2ModalOpen}
         onClose={() => setLevel2ModalOpen(false)}
-        onSuccess={() => void loadData(true)}
+        onSuccess={(portalData?: any) => {
+          if (portalData) {
+            const syncedSubjects = portalData?.risk_report?.subjects || portalData?.attendance?.subjects || portalData?.attendance;
+            if (Array.isArray(syncedSubjects) && syncedSubjects.length > 0) {
+              setDigest((prev) => prev ? { ...prev, attendance: syncedSubjects, gpa: portalData.gpa || prev.gpa } : prev);
+            }
+          }
+          void loadData(true);
+        }}
       />
     </div>
   );
