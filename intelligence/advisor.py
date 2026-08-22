@@ -3,7 +3,7 @@ AI Resume & Skills Advisor Engine.
 
 Performs skill-gap analysis for a student's resume against expected stream benchmarks.
 3-Tier Hybrid AI Inference Pipeline:
-1. Groq API (Llama-3.3-70B / DeepSeek-R1 Distill on LPUs @ 500 tokens/sec for live Vercel deployments)
+1. Groq API (groq/compound / openai/gpt-oss-120b on LPUs @ 500 tokens/sec for live Vercel deployments)
 2. Local Ollama LLM (DeepSeek-R1-Distill-1.5B / Llama-3.2 on local localhost:11434)
 3. Local Vector & TF-IDF Benchmark Engine (Deterministic <5ms CPU fallback)
 """
@@ -107,14 +107,14 @@ BULLET_TEMPLATES: Dict[str, str] = {
 
 
 def _query_groq_llm(prompt: str, api_key: str | None = None) -> str | None:
-    """Query Groq API LPU inference engine (Llama-3.3-70B-Versatile / DeepSeek-R1)."""
+    """Query Groq API LPU inference engine (groq/compound / openai/gpt-oss-120b)."""
     key = api_key or os.getenv("GROQ_API_KEY")
     if not key:
         return None
 
     url = "https://api.groq.com/openai/v1/chat/completions"
     payload = json.dumps({
-        "model": "llama-3.3-70b-versatile",
+        "model": "groq/compound",
         "messages": [
             {"role": "system", "content": "You are Atlas AI, an expert academic and career advisor for university students."},
             {"role": "user", "content": prompt}
@@ -128,11 +128,12 @@ def _query_groq_llm(prompt: str, api_key: str | None = None) -> str | None:
         data=payload,
         headers={
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {key}"
+            "Authorization": f"Bearer {key}",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
     )
     try:
-        with urllib.request.urlopen(req, timeout=3.0) as resp:
+        with urllib.request.urlopen(req, timeout=4.0) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             choices = data.get("choices", [])
             if choices:
@@ -210,7 +211,7 @@ def analyze_resume_skills(user_skills: List[str] | None = None, stream: str = "E
         bullets = [line.strip("- *•") for line in groq_reply.split("\n") if len(line.strip()) > 15]
         if bullets:
             resume_bullet_suggestions = bullets[:3]
-            llm_engine = "Groq LPU (Llama-3.3-70B)"
+            llm_engine = "Groq LPU (groq/compound)"
 
     # Tier 2: Try local Ollama LLM
     if llm_engine == "Local TF-IDF Vector Benchmark":

@@ -19,15 +19,11 @@ from portal.attendance_extractor import parse_attendance_html
 from portal.gpa_extractor import compute_gpa_trend, parse_gpa_html
 from portal.webcmd_adapter import WebCMDAdapter
 
-# Alias for backward compatibility
-calculate_risk = calculate_subject_risk
-
 __all__ = [
     "WebCMDAdapter",
     "get_attendance",
     "get_risk_report",
     "get_gpa",
-    "calculate_risk",
     "calculate_subject_risk",
     "generate_risk_report",
     "parse_attendance_html",
@@ -56,16 +52,8 @@ def get_attendance(
             with open(mock_path, "r", encoding="utf-8") as f:
                 return json.load(f)
 
-    try:
-        adapter = WebCMDAdapter(config)
-        return adapter.scrape_attendance(use_mock_fallback=True)
-    except Exception as e:
-        print(f"[portal] Error in WebCMD adapter ({e}), using mock attendance fallback")
-        mock_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "mock", "attendance.json")
-        if os.path.exists(mock_path):
-            with open(mock_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        return {"student_id": "22BCE1234", "subjects": []}
+    adapter = WebCMDAdapter(config)
+    return adapter.scrape_attendance(use_mock_fallback=True)
 
 
 def get_risk_report(
@@ -113,13 +101,5 @@ def get_gpa(
             with open(mock_path, "r", encoding="utf-8") as f:
                 return json.load(f)
 
-    try:
-        adapter = WebCMDAdapter(config)
-        return adapter.scrape_gpa(use_mock_fallback=True)
-    except Exception as e:
-        print(f"[portal] Error in WebCMD adapter ({e}), using mock GPA fallback")
-        mock_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "mock", "gpa.json")
-        if os.path.exists(mock_path):
-            with open(mock_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        return {"current_cgpa": 8.45, "semester_gpa": 8.72, "gpa_trend": "stable"}
+    adapter = WebCMDAdapter(config)
+    return adapter.scrape_gpa(use_mock_fallback=True)

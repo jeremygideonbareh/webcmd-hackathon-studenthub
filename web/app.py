@@ -151,18 +151,26 @@ async def chat_advisor(request: Request) -> JSONResponse:
                 f"Provide a concise, encouraging, and actionable response in 2-3 sentences."
             )
             payload = json.dumps({
-                "model": "llama-3.3-70b-versatile",
+                "model": "groq/compound",
                 "messages": [{"role": "system", "content": "You are Atlas AI Advisor."}, {"role": "user", "content": prompt}],
                 "max_tokens": 200,
                 "temperature": 0.6
             }).encode("utf-8")
-            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json", "Authorization": f"Bearer {user_groq_key}"})
-            with urllib.request.urlopen(req, timeout=3.0) as resp:
+            req = urllib.request.Request(
+                url,
+                data=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {user_groq_key}",
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                }
+            )
+            with urllib.request.urlopen(req, timeout=4.0) as resp:
                 gdata = json.loads(resp.read().decode("utf-8"))
                 gchoices = gdata.get("choices", [])
                 if gchoices:
                     greply = gchoices[0].get("message", {}).get("content")
-                    return JSONResponse({"reply": greply, "llm_engine": "Groq LPU (Llama-3.3-70B)", "analysis": analysis})
+                    return JSONResponse({"reply": greply, "llm_engine": "Groq LPU (groq/compound)", "analysis": analysis})
         except Exception as err:
             print(f"[app.py] Groq chat error: {err}")
 

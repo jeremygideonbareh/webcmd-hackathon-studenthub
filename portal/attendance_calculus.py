@@ -92,19 +92,38 @@ def calculate_subject_risk(
 
 
 def simulate_attendance(
-    present: int,
-    total: int,
+    classes_present: int,
+    classes_total: int,
     future_attend: int = 0,
     future_miss: int = 0,
-    threshold: float = 0.85
+    threshold: float = 0.85,
 ) -> Dict[str, Any]:
-    """Simulate projected attendance percentage after future attended & missed classes."""
-    new_present = max(0, present + max(0, future_attend))
-    new_total = max(1, total + max(0, future_attend) + max(0, future_miss))
-    res = calculate_subject_risk(new_present, new_total, threshold=threshold)
-    res["future_attend"] = future_attend
-    res["future_miss"] = future_miss
-    return res
+    """Simulate future attendance based on planned attended or missed classes."""
+    new_present = classes_present + future_attend
+    new_total = classes_total + future_attend + future_miss
+    if new_total <= 0:
+        return {
+            "current_pct": 100.0,
+            "simulated_pct": 100.0,
+            "classes_present": new_present,
+            "classes_total": new_total,
+            "classes_can_skip": 0,
+            "classes_must_attend": 0,
+            "risk_level": "SAFE",
+            "is_above_threshold": True,
+        }
+    sim_pct = round((new_present / new_total) * 100.0, 2)
+    risk = calculate_subject_risk(new_present, new_total, threshold=threshold)
+    return {
+        "current_pct": sim_pct,
+        "simulated_pct": sim_pct,
+        "classes_present": new_present,
+        "classes_total": new_total,
+        "classes_can_skip": risk["classes_can_skip"],
+        "classes_must_attend": risk["classes_must_attend"],
+        "risk_level": risk["risk_level"],
+        "is_above_threshold": sim_pct >= (threshold * 100.0),
+    }
 
 
 def _build_projection_message(
@@ -114,7 +133,6 @@ def _build_projection_message(
     must_attend: int,
     threshold_pct: float
 ) -> str:
-    """Generate concise human-readable projection advice."""
     target = int(threshold_pct) if threshold_pct.is_integer() else threshold_pct
     if risk_level == "SAFE":
         if can_skip == 0:
@@ -134,7 +152,6 @@ def generate_risk_report(
     attendance_data: Dict[str, Any],
     threshold: float = 0.85
 ) -> Dict[str, Any]:
-    """Generate risk_report.json schema compliant payload from attendance data."""
     subjects_input = attendance_data.get("subjects", [])
     evaluated_subjects = []
 

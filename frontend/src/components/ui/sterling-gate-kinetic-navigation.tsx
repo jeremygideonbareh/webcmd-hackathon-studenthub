@@ -154,10 +154,10 @@ export function SterlingGateKineticNavigation() {
   const closeMenu = () => setIsMenuOpen(false);
 
   return (
-    <div ref={containerRef} className="relative z-50">
+    <div ref={containerRef} className="sticky top-0 z-50 w-full">
       {/* Top Navbar Header */}
-      <div className="site-header-wrapper">
-        <header className="header py-4 px-6 flex items-center justify-between border-b bg-background/90 backdrop-blur-md">
+      <div className="site-header-wrapper sticky top-0 z-50 w-full">
+        <header className="header py-4 px-6 flex items-center justify-between border-b bg-background/90 backdrop-blur-md shadow-sm">
           <div className="flex items-center gap-3">
             <button
               onClick={toggleMenu}
