@@ -1,14 +1,14 @@
 /**
  * WebCMD Adapter: Knowledge Pro (KP) Portal Attendance Extractor
- * 
- * Execution via WebCMD CLI:
- * webcmd --profile kp_student browser run --file portal/adapters/kp_attendance_adapter.js -f json
  */
 
-export default async function run({ page, profile }) {
-  const KP_BASE_URL = process.env.KP_BASE_URL || 'https://kp.christuniversity.in/KnowledgePro';
-  const username = process.env.KP_USERNAME || '';
-  const password = process.env.KP_PASSWORD || '';
+(async () => {
+  const KP_BASE_URL = typeof process !== 'undefined' && process.env && process.env.KP_BASE_URL 
+    ? process.env.KP_BASE_URL 
+    : 'https://kp.christuniversity.in/KnowledgePro';
+
+  const username = typeof process !== 'undefined' && process.env && process.env.KP_USERNAME ? process.env.KP_USERNAME : '';
+  const password = typeof process !== 'undefined' && process.env && process.env.KP_PASSWORD ? process.env.KP_PASSWORD : '';
 
   const result = {
     timestamp: new Date().toISOString(),
@@ -27,9 +27,9 @@ export default async function run({ page, profile }) {
     );
 
     // 2. Check if redirected to login page (no active session)
-    const isLoginPage = page.url().includes('StudentLogin.do') && (await page.$('input[name="userName"]'));
+    const currentUrl = await page.url();
+    const isLoginPage = currentUrl.includes('StudentLogin.do') && (await page.$('input[name="userName"]'));
     if (isLoginPage && username && password) {
-      console.log('Authenticating with Knowledge Pro portal...');
       await page.fill('input[name="userName"]', username);
       await page.fill('input[name="password"]', password);
       
@@ -38,7 +38,6 @@ export default async function run({ page, profile }) {
         page.click('input[type="submit"], button[type="submit"], input[value="Login"]')
       ]);
 
-      // Re-navigate to attendance summary once authenticated
       await page.goto(
         `${KP_BASE_URL}/StudentLogin.do?method=initStudentWiseAttendanceSummary`,
         { waitUntil: 'networkidle', timeout: 30000 }
@@ -47,7 +46,6 @@ export default async function run({ page, profile }) {
 
     // 3. Extract metadata and attendance table
     const pageData = await page.evaluate(() => {
-      // Find Student Name / ID from headers
       let studentName = '';
       let studentId = '';
       let semester = 'Current';
@@ -62,14 +60,12 @@ export default async function run({ page, profile }) {
       const semMatch = bodyText.match(/Semester\s*:\s*([^\n\r]+)/i);
       if (semMatch) semester = semMatch[1].trim();
 
-      // Parse Attendance Rows
       const rows = Array.from(document.querySelectorAll('table tr'));
       const attendance = [];
 
       for (const row of rows) {
         const cells = Array.from(row.querySelectorAll('td, th')).map(c => c.innerText.trim());
         if (cells.length >= 4) {
-          // Look for row where columns contain course code and attendance counts
           const firstCol = cells[0];
           const hasCourseCode = /^[A-Z0-9\-_]{3,12}$/i.test(firstCol);
           
@@ -112,10 +108,8 @@ export default async function run({ page, profile }) {
     // 4. CRITICAL: Gracefully logout to avoid the 15-minute Struts account lockout
     try {
       await page.goto(`${KP_BASE_URL}/StudentLogin.do?method=logout`, { timeout: 8000 }).catch(() => {});
-    } catch (e) {
-      // Ignore logout navigation errors
-    }
+    } catch (e) {}
   }
 
-  return result;
-}
+  console.log(JSON.stringify(result));
+})();

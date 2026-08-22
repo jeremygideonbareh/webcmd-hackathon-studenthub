@@ -1,14 +1,14 @@
 /**
  * WebCMD Adapter: Knowledge Pro (KP) Portal GPA / Grades Extractor
- * 
- * Execution via WebCMD CLI:
- * webcmd --profile kp_student browser run --file portal/adapters/kp_gpa_adapter.js -f json
  */
 
-export default async function run({ page, profile }) {
-  const KP_BASE_URL = process.env.KP_BASE_URL || 'https://kp.christuniversity.in/KnowledgePro';
-  const username = process.env.KP_USERNAME || '';
-  const password = process.env.KP_PASSWORD || '';
+(async () => {
+  const KP_BASE_URL = typeof process !== 'undefined' && process.env && process.env.KP_BASE_URL 
+    ? process.env.KP_BASE_URL 
+    : 'https://kp.christuniversity.in/KnowledgePro';
+
+  const username = typeof process !== 'undefined' && process.env && process.env.KP_USERNAME ? process.env.KP_USERNAME : '';
+  const password = typeof process !== 'undefined' && process.env && process.env.KP_PASSWORD ? process.env.KP_PASSWORD : '';
 
   const result = {
     timestamp: new Date().toISOString(),
@@ -26,7 +26,8 @@ export default async function run({ page, profile }) {
     );
 
     // 2. Check if redirected to login page
-    const isLoginPage = page.url().includes('StudentLogin.do') && (await page.$('input[name="userName"]'));
+    const currentUrl = await page.url();
+    const isLoginPage = currentUrl.includes('StudentLogin.do') && (await page.$('input[name="userName"]'));
     if (isLoginPage && username && password) {
       await page.fill('input[name="userName"]', username);
       await page.fill('input[name="password"]', password);
@@ -68,5 +69,5 @@ export default async function run({ page, profile }) {
     } catch (e) {}
   }
 
-  return result;
-}
+  console.log(JSON.stringify(result));
+})();

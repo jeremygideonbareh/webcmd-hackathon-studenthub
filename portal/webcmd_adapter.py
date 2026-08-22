@@ -1,17 +1,19 @@
 """
 WebCMD Python Wrapper for Atlas Portal Subsystem.
 
-Executes deterministic JavaScript adapters using the WebCMD CLI (`@agentrhq/webcmd`).
+Executes deterministic JavaScript adapters using the WebCMD CLI (@agentrhq/webcmd).
 Provides:
-- Subprocess lifecycle management and error handling
-- Exponential backoff with randomized jitter to prevent Struts rate-limits/lockouts
-- Automatic response caching and offline/staleness recovery
-- Data schema transformation to shared hackathon contracts
+- Dynamic WebCMD session lifecycle management
+- Subprocess error handling and sanitization
+- Exponential backoff with randomized jitter
+- Automatic response caching and offline recovery
+- Data schema transformation to shared contracts
 """
 
 import json
 import os
 import random
+import re
 import shutil
 import subprocess
 import time
@@ -57,6 +59,33 @@ class WebCMDAdapter:
         """Check if webcmd CLI is installed and discoverable on PATH."""
         return shutil.which("webcmd") is not None
 
+    def _ensure_session(self) -> Optional[str]:
+        """Ensure an active WebCMD browser session exists and return its session ID."""
+        try:
+            list_res = subprocess.run(
+                ["webcmd", "--profile", self.profile, "session", "list"],
+                capture_output=True, text=True, timeout=10
+            )
+            if list_res.returncode == 0:
+                match = re.search(r"(session_[a-zA-Z0-9\-]+)", list_res.stdout)
+                if match:
+                    return match.group(1)
+        except Exception:
+            pass
+
+        try:
+            create_res = subprocess.run(
+                ["webcmd", "--profile", self.profile, "session", "create"],
+                capture_output=True, text=True, timeout=15
+            )
+            match = re.search(r"(session_[a-zA-Z0-9\-]+)", create_res.stdout)
+            if match:
+                return match.group(1)
+        except Exception:
+            pass
+
+        return None
+
     def _run_adapter(self, adapter_filename: str, retries: int = 2) -> Dict[str, Any]:
         """
         Execute a WebCMD JavaScript adapter script via CLI with retry & jitter.
@@ -70,18 +99,15 @@ class WebCMDAdapter:
         if not os.path.exists(adapter_path):
             raise FileNotFoundError(f"Adapter file not found at: {adapter_path}")
 
-        cmd = [
-            "webcmd",
-            "--profile", self.profile,
-            "browser", "run",
-            "--file", adapter_path,
-            "-f", "json"
-        ]
+        session_id = self._ensure_session()
+        cmd = ["webcmd", "--profile", self.profile]
+        if session_id:
+            cmd.extend(["--session", session_id])
+        cmd.extend(["browser", "run", "--file", adapter_path])
 
         last_error = None
         for attempt in range(1, retries + 2):
             try:
-                # Add slight random jitter (0.5s - 2.0s) between attempts
                 if attempt > 1:
                     jitter = random.uniform(1.0, 3.0)
                     time.sleep(jitter)
@@ -95,11 +121,9 @@ class WebCMDAdapter:
                 )
 
                 if result.returncode != 0:
-                    raise RuntimeError(f"WebCMD exited with code {result.returncode}: {result.stderr}")
+                    raise RuntimeError(f"WebCMD exited with code {result.returncode}: {result.stderr or result.stdout}")
 
-                # Locate JSON output within stdout
                 stdout_clean = result.stdout.strip()
-                # If stdout contains non-JSON log lines before the JSON payload, extract the JSON object
                 json_start = stdout_clean.find("{")
                 json_end = stdout_clean.rfind("}")
                 if json_start != -1 and json_end != -1:
@@ -145,7 +169,6 @@ class WebCMDAdapter:
                 ]
             }
 
-            # Cache successful scrape
             with open(cache_path, "w", encoding="utf-8") as f:
                 json.dump(attendance_payload, f, indent=2)
 
@@ -154,7 +177,6 @@ class WebCMDAdapter:
         except Exception as e:
             print(f"[WebCMDAdapter] Attendance scrape encountered error: {e}")
             if use_mock_fallback:
-                # Try cached file first
                 if os.path.exists(cache_path):
                     print(f"[WebCMDAdapter] Serving cached attendance data from {cache_path}")
                     with open(cache_path, "r", encoding="utf-8") as f:
@@ -162,7 +184,6 @@ class WebCMDAdapter:
                         cached["staleness_warning"] = f"Using cached data. Live scrape failed: {str(e)}"
                         return cached
                 
-                # Fallback to mock data
                 mock_path = os.path.join(self.data_dir, "mock", "attendance.json")
                 if os.path.exists(mock_path):
                     print(f"[WebCMDAdapter] Serving mock attendance data from {mock_path}")
@@ -194,7 +215,6 @@ class WebCMDAdapter:
                 "gpa_trend": trend
             }
 
-            # Cache successful scrape
             with open(cache_path, "w", encoding="utf-8") as f:
                 json.dump(gpa_payload, f, indent=2)
 
