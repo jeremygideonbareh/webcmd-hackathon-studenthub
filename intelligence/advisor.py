@@ -2,12 +2,43 @@
 """
 AI Resume & Skills Advisor Engine.
 
-Performs skill-gap analysis for a student's resume against the expected
-skill set for their academic stream, and returns a readiness score,
-matched/missing skills, recommended projects, and resume bullet suggestions.
+Two layers:
+
+1. Deterministic rule-based core (no network, always available):
+   skill-gap analysis of a student's resume against their academic stream,
+   producing a readiness score, matched/missing skills, and recommended
+   projects that fill the actual gaps.
+
+2. Optional Groq-powered LLM layer:
+   generates natural, personalized resume bullet suggestions for the
+   student's MATCHED skills instead of static templates. Activated only
+   when GROQ_API_KEY is present in the environment (.env is loaded via
+   python-dotenv). ANY failure - missing key, missing package, network
+   error, rate limit, bad response - silently falls back to the static
+   BULLET_TEMPLATES so the advisor never breaks a demo.
+
+Security note: the API key lives ONLY in .env (git-ignored). It is never
+hardcoded here, never logged, never returned in output dicts.
 """
 
-from typing import List, Dict, Any
+import os
+import re
+from typing import Any, Dict, List, Optional
+
+from dotenv import load_dotenv
+
+load_dotenv()  # repo-root .env; real values stay out of source control
+
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_TIMEOUT_SECONDS = float(os.getenv("GROQ_TIMEOUT_SECONDS", "20"))
+MAX_AI_BULLETS = 6
+
+SYSTEM_PROMPT = (
+    "You are a concise career coach for Indian university students. "
+    "You write ATS-friendly resume bullet points that start with strong "
+    "action verbs. You never invent company names, GPA numbers, or metrics - "
+    "where a number would go, use a bracketed placeholder like [X%] or [N]."
+)
 
 
 # --- Stream skill maps -------------------------------------------------
@@ -21,8 +52,6 @@ STREAM_SKILLS: Dict[str, List[str]] = {
 
 
 # --- Recommended projects per missing-skill area -----------------------
-# Keyed by the specific skill so we can recommend a project that fills
-# whichever gaps are actually missing for this student.
 
 PROJECT_LIBRARY: Dict[str, Dict[str, Any]] = {
     "DSA": {
@@ -89,6 +118,7 @@ PROJECT_LIBRARY: Dict[str, Dict[str, Any]] = {
 
 
 # --- Resume bullet templates per skill ----------------------------------
+# Static fallback used whenever the Groq layer is unavailable.
 
 BULLET_TEMPLATES: Dict[str, str] = {
     "SPSS": "Conducted quantitative statistical analysis on sample of 500+ participants using SPSS ANOVA and regression models.",
@@ -109,7 +139,98 @@ BULLET_TEMPLATES: Dict[str, str] = {
 }
 
 
-def analyze_resume_skills(resume_skills: List[str], stream: str) -> Dict[str, Any]:
+def get_groq_client():
+    """Build a Groq client from GROQ_API_KEY in the environment.
+
+    Returns None (never raises) when the key is unset, the groq package is
+    not installed, or client construction fails - callers treat None as
+    'use static templates'.
+    """
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        return None
+    try:
+        from groq import Groq
+    except ImportError:
+        return None
+    try:
+        return Groq(api_key=api_key, timeout=GROQ_TIMEOUT_SECONDS)
+    except Exception:
+        return None
+
+
+def _build_bullet_prompt(
+    matched_skills: List[str], missing_skills: List[str], stream: str
+) -> str:
+    matched_list = ", ".join(matched_skills) or "(none)"
+    missing_list = ", ".join(missing_skills[:4]) or "(none)"
+    return (
+        f"Student stream: {stream}.\n"
+        f"Skills this student ALREADY has (evidence on resume): {matched_list}.\n"
+        f"Skills they are MISSING (do not write bullets claiming these): {missing_list}.\n\n"
+        f"Write one polished resume bullet per matched skill above "
+        f"({len(matched_skills)} bullets total). Rules:\n"
+        "- One line each, max 22 words, starting with an action verb.\n"
+        "- Reflect realistic coursework/personal-project scope, NOT internships at named companies.\n"
+        "- Use [N] or [X%] placeholders instead of inventing numbers.\n"
+        "- Output ONLY the bullets, one per line, each starting with '- '."
+    )
+
+
+def _extract_bullets(text: str) -> List[str]:
+    """Parse LLM output into clean bullet strings."""
+    bullets: List[str] = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        line = re.sub(r"^[-*•·]\s*", "", line)
+        line = re.sub(r"^\d+[.)]\s*", "", line)
+        line = re.sub(r"\*\*(.+?)\*\*", r"\1", line)
+        line = line.strip().strip('"')
+        if len(line.split()) >= 5:
+            bullets.append(line)
+        if len(bullets) >= MAX_AI_BULLETS:
+            break
+    return bullets
+
+
+def generate_ai_bullets(
+    client: Any,
+    matched_skills: List[str],
+    missing_skills: List[str],
+    stream: str,
+) -> List[str]:
+    """One Groq chat call. Returns [] on ANY failure - caller falls back."""
+    if client is None or not matched_skills:
+        return []
+    try:
+        completion = client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {
+                    "role": "user",
+                    "content": _build_bullet_prompt(matched_skills, missing_skills, stream),
+                },
+            ],
+            temperature=0.6,
+            max_tokens=400,
+        )
+        content = completion.choices[0].message.content or ""
+        return _extract_bullets(content)
+    except Exception:
+        # Network down, rate limited, malformed response, quota exhausted...
+        # The rule-based advisor must keep working regardless.
+        return []
+
+
+def analyze_resume_skills(
+    resume_skills: List[str],
+    stream: str,
+    use_ai: bool = True,
+    client: Any = None,
+) -> Dict[str, Any]:
     """
     Compare a student's resume skills against the expected skill set for
     their stream, and return a structured readiness report.
@@ -118,11 +239,15 @@ def analyze_resume_skills(resume_skills: List[str], stream: str) -> Dict[str, An
         resume_skills: list of skill strings extracted from the resume
                         (e.g. from intel/parse_resume.py's output)
         stream: one of "Engineering", "Psychology", "BBA", "MBA"
+        use_ai: when True (default), try Groq for personalized bullets;
+                falls back to static templates automatically.
+        client: pre-built Groq client (tests inject fakes here). When None
+                and use_ai is True, one is built from the environment.
 
     Returns:
         dict with stream, readiness_score, matched_skills,
-        missing_critical_skills, recommended_projects, and
-        resume_bullet_suggestions.
+        missing_critical_skills, recommended_projects,
+        resume_bullet_suggestions, and bullet_source ('groq'|'template').
     """
     if stream not in STREAM_SKILLS:
         raise ValueError(
@@ -156,10 +281,21 @@ def analyze_resume_skills(resume_skills: List[str], stream: str) -> Dict[str, An
         if len(recommended_projects) >= 3:
             break
 
-    # Resume bullets for matched skills (things worth highlighting on the resume)
-    resume_bullet_suggestions = [
-        BULLET_TEMPLATES[skill] for skill in matched_skills if skill in BULLET_TEMPLATES
+    template_bullets = [
+        BULLET_TEMPLATES[skill]
+        for skill in matched_skills
+        if skill in BULLET_TEMPLATES
     ]
+
+    ai_bullets: List[str] = []
+    if use_ai:
+        if client is None:
+            client = get_groq_client()
+        ai_bullets = generate_ai_bullets(
+            client, matched_skills, missing_critical_skills, stream
+        )
+
+    bullet_source = "groq" if ai_bullets else "template"
 
     return {
         "stream": stream,
@@ -167,13 +303,15 @@ def analyze_resume_skills(resume_skills: List[str], stream: str) -> Dict[str, An
         "matched_skills": matched_skills,
         "missing_critical_skills": missing_critical_skills,
         "recommended_projects": recommended_projects,
-        "resume_bullet_suggestions": resume_bullet_suggestions,
+        "resume_bullet_suggestions": ai_bullets or template_bullets,
+        "bullet_source": bullet_source,
     }
 
 
 if __name__ == "__main__":
-    # Quick manual test
+    # Quick manual test - fully offline unless GROQ_API_KEY is set in .env
+    import json
+
     sample_resume_skills = ["Python", "Git", "SQL", "Machine Learning"]
     result = analyze_resume_skills(sample_resume_skills, "Engineering")
-    import json
     print(json.dumps(result, indent=2))
