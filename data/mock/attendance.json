@@ -1,0 +1,40 @@
+{
+  "student_name": "Rahul Kumar",
+  "student_id": "22BCE1234",
+  "semester": "Fall 2026",
+  "scraped_at": "2026-08-22T10:00:00+05:30",
+  "subjects": [
+    {
+      "code": "EEE1001",
+      "name": "Basic Electrical Engineering",
+      "classes_present": 42,
+      "classes_total": 52,
+      "attendance_pct": 80.77,
+      "status": "WARNING"
+    },
+    {
+      "code": "CSE2001",
+      "name": "Data Structures & Algorithms",
+      "classes_present": 48,
+      "classes_total": 50,
+      "attendance_pct": 96.0,
+      "status": "OK"
+    },
+    {
+      "code": "MAT2002",
+      "name": "Discrete Mathematics",
+      "classes_present": 38,
+      "classes_total": 44,
+      "attendance_pct": 86.36,
+      "status": "OK"
+    },
+    {
+      "code": "PHY1001",
+      "name": "Engineering Physics",
+      "classes_present": 30,
+      "classes_total": 40,
+      "attendance_pct": 75.0,
+      "status": "WARNING"
+    }
+  ]
+}

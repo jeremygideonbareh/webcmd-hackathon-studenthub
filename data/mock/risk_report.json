@@ -1,0 +1,53 @@
+{
+  "generated_at": "2026-08-22T10:00:00+05:30",
+  "threshold_pct": 85.0,
+  "student_id": "22BCE1234",
+  "student_name": "Rahul Kumar",
+  "semester": "Fall 2026",
+  "subjects": [
+    {
+      "code": "PHY1001",
+      "name": "Engineering Physics",
+      "current_pct": 75.0,
+      "classes_present": 30,
+      "classes_total": 40,
+      "classes_can_skip": 0,
+      "classes_must_attend": 27,
+      "projection": "🚨 DANGER: Attendance is critically low at 75.0%. Must attend next 27 consecutive classes immediately!",
+      "risk_level": "DANGER"
+    },
+    {
+      "code": "EEE1001",
+      "name": "Basic Electrical Engineering",
+      "current_pct": 80.77,
+      "classes_present": 42,
+      "classes_total": 52,
+      "classes_can_skip": 0,
+      "classes_must_attend": 15,
+      "projection": "⚠️ Warning: You're at 80.77%. Must attend next 15 consecutive classes to reach 85%.",
+      "risk_level": "WARNING"
+    },
+    {
+      "code": "MAT2002",
+      "name": "Discrete Mathematics",
+      "current_pct": 86.36,
+      "classes_present": 38,
+      "classes_total": 44,
+      "classes_can_skip": 0,
+      "classes_must_attend": 0,
+      "projection": "You're at 86.36%. You can skip 0 classes but proceed with caution.",
+      "risk_level": "CAUTION"
+    },
+    {
+      "code": "CSE2001",
+      "name": "Data Structures & Algorithms",
+      "current_pct": 96.0,
+      "classes_present": 48,
+      "classes_total": 50,
+      "classes_can_skip": 6,
+      "classes_must_attend": 0,
+      "projection": "You're at 96.0%. You can safely skip next 6 classes.",
+      "risk_level": "SAFE"
+    }
+  ]
+}
