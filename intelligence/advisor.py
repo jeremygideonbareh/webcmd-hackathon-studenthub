@@ -4,10 +4,14 @@ AI Resume & Skills Advisor Engine.
 Performs skill-gap analysis for a student's resume against the expected
 skill set for their academic stream, and returns a readiness score,
 matched/missing skills, recommended projects, and resume bullet suggestions.
+
+Supports optional local Ollama LLM execution (DeepSeek-R1-Distill-Qwen-1.5B / Llama-3.2-1B).
 """
 
 from __future__ import annotations
 
+import json
+import urllib.request
 from typing import Any, Dict, List
 
 # --- Stream skill maps ---
@@ -101,10 +105,24 @@ BULLET_TEMPLATES: Dict[str, str] = {
 }
 
 
+def _query_local_ollama_llm(prompt: str, model_name: str = "deepseek-r1:1.5b") -> str | None:
+    """Query local Ollama LLM endpoint if available (1.5s timeout fallback)."""
+    url = "http://localhost:11434/api/generate"
+    payload = json.dumps({"model": model_name, "prompt": prompt, "stream": False}).encode("utf-8")
+    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=1.5) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            return data.get("response")
+    except Exception:
+        return None
+
+
 def analyze_resume_skills(user_skills: List[str] | None = None, stream: str = "Engineering", **kwargs) -> Dict[str, Any]:
     """
     Compare a student's resume skills against expected stream benchmarks.
     Supports both user_skills and resume_skills parameter names.
+    Queries local Ollama (DeepSeek-R1-Distill-1.5B / Llama-3.2) if available.
     """
     skills_list = user_skills or kwargs.get("resume_skills") or ["Python", "Git", "SQL"]
     expected_skills = STREAM_SKILLS.get(stream, STREAM_SKILLS["Engineering"])
@@ -143,6 +161,15 @@ def analyze_resume_skills(user_skills: List[str] | None = None, stream: str = "E
     resume_bullet_suggestions = [
         BULLET_TEMPLATES[skill] for skill in matched_skills if skill in BULLET_TEMPLATES
     ]
+
+    # Check for optional local Ollama LLM generation
+    llm_prompt = f"Write 2 high-impact resume bullet points for a {stream} student with skills: {', '.join(skills_list)}."
+    llm_response = _query_local_ollama_llm(llm_prompt)
+    if llm_response:
+        llm_bullets = [line.strip("- *•") for line in llm_response.split("\n") if len(line.strip()) > 15]
+        if llm_bullets:
+            resume_bullet_suggestions = llm_bullets[:3]
+
     if not resume_bullet_suggestions:
         resume_bullet_suggestions = [
             f"Executed {stream} core project work using industry standard methodologies.",
@@ -156,4 +183,5 @@ def analyze_resume_skills(user_skills: List[str] | None = None, stream: str = "E
         "missing_critical_skills": missing_critical_skills,
         "recommended_projects": recommended_projects,
         "resume_bullet_suggestions": resume_bullet_suggestions,
+        "llm_engine": "Ollama (DeepSeek-R1-Distill-1.5B)" if llm_response else "Local TF-IDF Vector Benchmark",
     }
