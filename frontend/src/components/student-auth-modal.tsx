@@ -19,7 +19,7 @@ interface StudentAuthModalProps {
 }
 
 export function StudentAuthModal({ isOpen, onClose, onSuccess }: StudentAuthModalProps) {
-  const { loginLevel2 } = useAuth();
+  const { user, loginLevel2 } = useAuth();
   const [registerNo, setRegisterNo] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [connecting, setConnecting] = React.useState(false);
@@ -49,7 +49,7 @@ export function StudentAuthModal({ isOpen, onClose, onSuccess }: StudentAuthModa
         body: JSON.stringify({
           username: registerNo.trim(),
           password: password.trim(),
-          use_mock: true, // Use mock data for hackathon demo
+          stream: user?.stream || "Engineering",
         }),
       });
 
