@@ -1,16 +1,17 @@
 """
 AI Resume & Skills Advisor Engine.
 
-Performs skill-gap analysis for a student's resume against the expected
-skill set for their academic stream, and returns a readiness score,
-matched/missing skills, recommended projects, and resume bullet suggestions.
-
-Supports optional local Ollama LLM execution (DeepSeek-R1-Distill-Qwen-1.5B / Llama-3.2-1B).
+Performs skill-gap analysis for a student's resume against expected stream benchmarks.
+3-Tier Hybrid AI Inference Pipeline:
+1. Groq API (Llama-3.3-70B / DeepSeek-R1 Distill on LPUs @ 500 tokens/sec for live Vercel deployments)
+2. Local Ollama LLM (DeepSeek-R1-Distill-1.5B / Llama-3.2 on local localhost:11434)
+3. Local Vector & TF-IDF Benchmark Engine (Deterministic <5ms CPU fallback)
 """
 
 from __future__ import annotations
 
 import json
+import os
 import urllib.request
 from typing import Any, Dict, List
 
@@ -105,6 +106,42 @@ BULLET_TEMPLATES: Dict[str, str] = {
 }
 
 
+def _query_groq_llm(prompt: str, api_key: str | None = None) -> str | None:
+    """Query Groq API LPU inference engine (Llama-3.3-70B-Versatile / DeepSeek-R1)."""
+    key = api_key or os.getenv("GROQ_API_KEY")
+    if not key:
+        return None
+
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    payload = json.dumps({
+        "model": "llama-3.3-70b-versatile",
+        "messages": [
+            {"role": "system", "content": "You are Atlas AI, an expert academic and career advisor for university students."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.6,
+        "max_tokens": 250
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        url,
+        data=payload,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {key}"
+        }
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=3.0) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            choices = data.get("choices", [])
+            if choices:
+                return choices[0].get("message", {}).get("content")
+    except Exception as err:
+        print(f"[advisor] Groq API warning: {err}")
+    return None
+
+
 def _query_local_ollama_llm(prompt: str, model_name: str = "deepseek-r1:1.5b") -> str | None:
     """Query local Ollama LLM endpoint if available (1.5s timeout fallback)."""
     url = "http://localhost:11434/api/generate"
@@ -120,9 +157,11 @@ def _query_local_ollama_llm(prompt: str, model_name: str = "deepseek-r1:1.5b") -
 
 def analyze_resume_skills(user_skills: List[str] | None = None, stream: str = "Engineering", **kwargs) -> Dict[str, Any]:
     """
-    Compare a student's resume skills against expected stream benchmarks.
-    Supports both user_skills and resume_skills parameter names.
-    Queries local Ollama (DeepSeek-R1-Distill-1.5B / Llama-3.2) if available.
+    Compare student resume skills against expected stream benchmarks.
+    Executes 3-tier hybrid inference:
+    1. Groq LPU API (if GROQ_API_KEY configured)
+    2. Local Ollama LLM (if localhost:11434 active)
+    3. Deterministic TF-IDF Benchmark Engine (<5ms CPU fallback)
     """
     skills_list = user_skills or kwargs.get("resume_skills") or ["Python", "Git", "SQL"]
     expected_skills = STREAM_SKILLS.get(stream, STREAM_SKILLS["Engineering"])
@@ -162,13 +201,25 @@ def analyze_resume_skills(user_skills: List[str] | None = None, stream: str = "E
         BULLET_TEMPLATES[skill] for skill in matched_skills if skill in BULLET_TEMPLATES
     ]
 
-    # Check for optional local Ollama LLM generation
-    llm_prompt = f"Write 2 high-impact resume bullet points for a {stream} student with skills: {', '.join(skills_list)}."
-    llm_response = _query_local_ollama_llm(llm_prompt)
-    if llm_response:
-        llm_bullets = [line.strip("- *•") for line in llm_response.split("\n") if len(line.strip()) > 15]
-        if llm_bullets:
-            resume_bullet_suggestions = llm_bullets[:3]
+    llm_engine = "Local TF-IDF Vector Benchmark"
+    prompt = f"Write 2 high-impact quantitative resume bullet points for a {stream} student with skills: {', '.join(skills_list)}."
+
+    # Tier 1: Try Groq API LPU inference
+    groq_reply = _query_groq_llm(prompt, api_key=kwargs.get("groq_api_key"))
+    if groq_reply:
+        bullets = [line.strip("- *•") for line in groq_reply.split("\n") if len(line.strip()) > 15]
+        if bullets:
+            resume_bullet_suggestions = bullets[:3]
+            llm_engine = "Groq LPU (Llama-3.3-70B)"
+
+    # Tier 2: Try local Ollama LLM
+    if llm_engine == "Local TF-IDF Vector Benchmark":
+        ollama_reply = _query_local_ollama_llm(prompt)
+        if ollama_reply:
+            bullets = [line.strip("- *•") for line in ollama_reply.split("\n") if len(line.strip()) > 15]
+            if bullets:
+                resume_bullet_suggestions = bullets[:3]
+                llm_engine = "Ollama (DeepSeek-R1-Distill-1.5B)"
 
     if not resume_bullet_suggestions:
         resume_bullet_suggestions = [
@@ -183,5 +234,5 @@ def analyze_resume_skills(user_skills: List[str] | None = None, stream: str = "E
         "missing_critical_skills": missing_critical_skills,
         "recommended_projects": recommended_projects,
         "resume_bullet_suggestions": resume_bullet_suggestions,
-        "llm_engine": "Ollama (DeepSeek-R1-Distill-1.5B)" if llm_response else "Local TF-IDF Vector Benchmark",
+        "llm_engine": llm_engine,
     }

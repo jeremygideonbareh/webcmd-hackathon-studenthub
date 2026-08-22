@@ -7,7 +7,7 @@ Endpoints:
     GET  /api/digest           → {attendance, jobs, housing, scholarships, discounts, deadlines, gpa, weights}
     POST /api/feedback         → {item_type, item_id, reaction} → learning engine
     POST /api/advisor/analyze  → {skills, stream} → stream skill gap analysis
-    POST /api/chat             → {message, stream, user_skills, gpa} → interactive AI Chatbot advisor reply
+    POST /api/chat             → {message, stream, user_skills, gpa, groq_api_key} → interactive AI Chatbot advisor reply
     GET  /api/scholarships     → [scholarships]
     GET  /api/discounts        → [discounts]
     GET  /api/deadlines        → [academic_deadlines]
@@ -20,6 +20,8 @@ Endpoints:
 from __future__ import annotations
 
 import json
+import os
+import urllib.request
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -130,13 +132,41 @@ async def chat_advisor(request: Request) -> JSONResponse:
     stream = body.get("stream", "Engineering")
     user_skills = body.get("user_skills", ["Python", "Git", "SQL"])
     gpa = float(body.get("gpa", 8.2))
+    user_groq_key = body.get("groq_api_key") or os.getenv("GROQ_API_KEY")
 
-    analysis = analyze_resume_skills(user_skills=user_skills, stream=stream)
+    analysis = analyze_resume_skills(user_skills=user_skills, stream=stream, groq_api_key=user_groq_key)
     missing = ", ".join(analysis.get("missing_critical_skills", []))
     matched = ", ".join(analysis.get("matched_skills", []))
     score = analysis.get("readiness_score", 70)
     engine_type = analysis.get("llm_engine", "Atlas AI Core Engine")
 
+    # If Groq API key is present, query Groq LPU directly for high-speed LLM generation!
+    if user_groq_key:
+        try:
+            url = "https://api.groq.com/openai/v1/chat/completions"
+            prompt = (
+                f"You are Atlas AI, an expert academic and career advisor for university students in {stream}.\n"
+                f"Student Profile:\n- Matched Skills: {matched}\n- Missing Skills: {missing}\n- CGPA: {gpa}\n\n"
+                f"Student Question: {user_msg}\n\n"
+                f"Provide a concise, encouraging, and actionable response in 2-3 sentences."
+            )
+            payload = json.dumps({
+                "model": "llama-3.3-70b-versatile",
+                "messages": [{"role": "system", "content": "You are Atlas AI Advisor."}, {"role": "user", "content": prompt}],
+                "max_tokens": 200,
+                "temperature": 0.6
+            }).encode("utf-8")
+            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json", "Authorization": f"Bearer {user_groq_key}"})
+            with urllib.request.urlopen(req, timeout=3.0) as resp:
+                gdata = json.loads(resp.read().decode("utf-8"))
+                gchoices = gdata.get("choices", [])
+                if gchoices:
+                    greply = gchoices[0].get("message", {}).get("content")
+                    return JSONResponse({"reply": greply, "llm_engine": "Groq LPU (Llama-3.3-70B)", "analysis": analysis})
+        except Exception as err:
+            print(f"[app.py] Groq chat error: {err}")
+
+    # Fallback response generator
     msg_lower = user_msg.lower()
 
     if "resume" in msg_lower or "improve" in msg_lower:
