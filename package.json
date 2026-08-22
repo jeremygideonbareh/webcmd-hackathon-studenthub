@@ -1,4 +1,9 @@
 {
+  "name": "atlas-studenthub",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix frontend install && npm --prefix frontend run build"
+  },
   "dependencies": {
     "tesseract.js": "^7.0.0"
   }
