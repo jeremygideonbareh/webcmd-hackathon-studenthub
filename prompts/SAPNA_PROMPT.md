@@ -1,82 +1,85 @@
-# 🧠 Sapna's Starting Prompt — Intelligence Architect (Expanded Scope)
+# 🧠 Sapna's Master Task Plan & Starting Prompt — Intelligence Architect
 
-> Copy-paste everything below the line into your AI coding agent to get started.
+> **Instructions for Sapna:** Copy and paste the prompt below into your AI coding agent (e.g. Gemini / Antigravity / Cursor). All functions and clean contract interfaces are already scaffolded and tested on `main`.
 
 ---
 
 ## PROMPT START — COPY FROM HERE
 
-I am Sapna, working on the **Atlas** hackathon project. My role is **Intelligence Architect**. I own the `intelligence/` directory in the repo at: https://github.com/jeremygideonbareh/webcmd-hackathon-studenthub
+```markdown
+Role: Intelligence Architect (Sapna)
+Repository: https://github.com/jeremygideonbareh/webcmd-hackathon-studenthub
+Branch to Work On: sapna/intel
 
-I am responsible for building the **Intelligence Layer** of Atlas, including:
-1. **Stream-Tailored AI Resume & Skills Advisor (`intelligence/advisor.py`)**:
-   - Stream benchmarks for **Engineering**, **Psychology**, **BBA**, and **MBA**.
-   - Calculates Readiness Score (0-100%), missing critical skills, recommended portfolio projects, and resume bullet suggestions.
+Your goal is to build and expand the Intelligence Subsystem under `intelligence/` and `intel/`.
+
+### 🎯 Your 4 Core Deliverables
+
+1. **AI Resume & Skills Advisor Engine (`intelligence/advisor.py`)**:
+   - Perform skill gap analysis across 4 major student streams:
+     - **Engineering**: Check for Python, DSA, Git, Docker, REST APIs, SQL.
+     - **Psychology**: Check for SPSS, Statistical Analysis, Qualtrics, R, Behavioral Assessment, Psychometrics.
+     - **BBA**: Check for Excel Pivot Tables, Financial Modeling, Market Research, Brand Strategy, Sales Pitching, CRM.
+     - **MBA**: Check for Corporate Strategy, Business Analytics, SQL, Tableau/PowerBI, DCF Valuation, Agile.
+   - Output Dictionary:
+     ```python
+     {
+         "stream": "Psychology",
+         "readiness_score": 85,
+         "matched_skills": ["SPSS", "Qualtrics"],
+         "missing_critical_skills": ["R", "Psychometrics"],
+         "recommended_projects": [
+             {"title": "Empirical Behavioral Survey & Statistical Report", "description": "...", "skills_gained": ["SPSS", "ANOVA"]}
+         ],
+         "resume_bullet_suggestions": [
+             "Conducted quantitative statistical analysis on sample of 500+ participants using SPSS ANOVA and regression models."
+         ]
+     }
+     ```
+
 2. **Scholarship Aggregator & Matcher (`intelligence/scholarships.py`)**:
-   - Filter scholarships by student GPA eligibility and academic stream.
-3. **Student Discounts Catalog (`intelligence/discounts.py`)**:
-   - Categorize student deals (Developer tools, Research software, Business courses, Hardware, Subscriptions).
-4. **LaTeX Resume Parser & TF-IDF Matcher (`intel/parse_resume.py`, `intel/tfidf_matcher.py`)**:
-   - Extract resume skills and compute cosine similarity job match scores.
+   - Filter active scholarships from `data/mock/scholarships.json` by student CGPA and stream:
+     ```python
+     def get_scholarships(gpa: float = 8.0, stream: str = "Engineering") -> list[dict]:
+     ```
 
-### My Functions to Export (`intelligence/__init__.py`)
+3. **Student Deals & Perks Finder (`intelligence/discounts.py`)**:
+   - Categorize student deals (Developer tools, Productivity, Research software, Finance, Subscriptions):
+     ```python
+     def get_discounts(category: str | None = None, stream: str | None = None) -> list[dict]:
+     ```
+
+4. **TF-IDF Resume & Job Matcher (`intel/parse_resume.py` & `intel/tfidf_matcher.py`)**:
+   - Extract resume skills (LaTeX/PDF parser) and compute cosine similarity job match scores against scraped Internshala internship postings.
+
+---
+
+### 📦 Export Contract (`intelligence/__init__.py`)
+
+Ensure your module cleanly exports these functions so Jeremy's FastAPI backend endpoints (`/api/advisor/analyze`, `/api/scholarships`, `/api/discounts`) can consume them without errors:
 
 ```python
-def analyze_resume_skills(user_skills: list[str], stream: str = "Engineering") -> dict:
-    ...
+from intelligence.advisor import analyze_resume_skills
+from intelligence.scholarships import get_scholarships
+from intelligence.discounts import get_discounts
 
-def get_scholarships(gpa: float = 8.0, stream: str = "Engineering") -> list[dict]:
-    ...
-
-def get_discounts(category: str | None = None, stream: str | None = None) -> list[dict]:
-    ...
-
-def get_matched_jobs(resume_data: dict | None = None, category: str = "python-internship", top_n: int = 5) -> dict:
-    ...
-
-def get_housing(locality: str = "Koramangala", city: str = "Bangalore", budget_max: int = 25000) -> dict:
-    ...
+__all__ = [
+    "get_matched_jobs",
+    "get_housing",
+    "analyze_resume_skills",
+    "get_scholarships",
+    "get_discounts",
+]
 ```
 
-### JSON Contracts I Read/Write
+---
 
-`data/mock/scholarships.json`:
-```json
-{
-  "scholarships": [
-    {
-      "id": "sch_01",
-      "title": "National Engineering Excellence Grant 2026",
-      "provider": "Ministry of Education",
-      "amount": "₹1,00,000 / year",
-      "min_gpa": 8.0,
-      "streams": ["Engineering", "Data Science"],
-      "deadline": "2026-10-15",
-      "description": "Merit-based aid for high-performing engineering students.",
-      "url": "https://scholarships.gov.in"
-    }
-  ]
-}
+### 🧪 Verification Command
+
+Run pytest to verify your code passes all unit tests:
+```bash
+python -m pytest tests/test_advisor.py tests/test_scholarships.py tests/test_discounts.py -v
+```
 ```
 
-`data/mock/discounts.json`:
-```json
-{
-  "discounts": [
-    {
-      "id": "disc_01",
-      "title": "GitHub Student Developer Pack",
-      "provider": "GitHub",
-      "category": "Developer Tools",
-      "discount": "100% FREE",
-      "description": "Copilot, JetBrains, Canva Pro, DigitalOcean credits.",
-      "streams": ["Engineering", "BBA", "MBA"],
-      "code": "STUDENT-EDU-VERIFY",
-      "url": "https://education.github.com/pack"
-    }
-  ]
-}
-```
-
-### My Branch
-I work on branch `sapna/intel`. I export clean Python dicts matching these contracts so Jeremy's API endpoints (`/api/advisor/analyze`, `/api/scholarships`, `/api/discounts`) consume them cleanly without merge conflicts.
+---
